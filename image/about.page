@@ -1,0 +1,13 @@
+---
+title: Image
+description: Image manipulation using [GD](http://www.php.net/manual/en/book.image.php "PHP – Image Processing and GD") library.
+author: Taufik Nurrohman
+type: Markdown
+version: 2.0.0
+...
+
+~~~ .php
+Image::take('photo.jpg')->resize(200)->saveAs('photo-2.jpg');
+~~~
+
+<!-- block:donate -->
