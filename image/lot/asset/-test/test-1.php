@@ -5,23 +5,23 @@ $destination = dirname($source) . DS . 'result' . DS;
 
 // resize
 Image::take($source)
-     ->resize(50, 100)
-     ->saveTo($destination . 'flower-resize-50.jpg');
+     ->resize(200, 200)
+     ->saveTo($destination . 'flower-resize-200.jpg');
 
 // resize dis-proportional
 Image::take($source)
-     ->resize(50, 100, false)
-     ->saveTo($destination . 'flower-resize-50x100.jpg');
+     ->resize(200, 200, false)
+     ->saveTo($destination . 'flower-resize-200x200.jpg');
 
 // crop
 Image::take($source)
-     ->crop(100, 200)
-     ->saveTo($destination . 'flower-crop-50-30.jpg');
+     ->crop(72, 72)
+     ->saveTo($destination . 'flower-crop-72-72.jpg');
 
 // crop no resize
 Image::take($source)
-     ->crop(10, 20, 100, 200)
-     ->saveTo($destination . 'flower-crop-10-20-100-200.jpg');
+     ->crop(130, 50, 100, 100)
+     ->saveTo($destination . 'flower-crop-130-50-100-100.jpg');
 
 // brightness
 Image::take($source)
@@ -35,8 +35,8 @@ Image::take($source)
 
 // colorize
 Image::take($source)
-     ->colorize('#ffa500')
-     ->saveTo($destination . 'flower-colorize-ffa500.jpg');
+     ->colorize('#FF0A14', .4)
+     ->saveTo($destination . 'flower-colorize-ff0a14-4.jpg');
 
 // grayscale
 Image::take($source)
@@ -55,13 +55,13 @@ Image::take($source)
 
 // blur
 Image::take($source)
-     ->blur(2)
-     ->saveTo($destination . 'flower-blur-2.jpg');
+     ->blur(4)
+     ->saveTo($destination . 'flower-blur-4.jpg');
 
 // sharpen
 Image::take($source)
-     ->sharpen(2)
-     ->saveTo($destination . 'flower-sharpen-2.jpg');
+     ->sharpen(1)
+     ->saveTo($destination . 'flower-sharpen-1.jpg');
 
 // pixelate 1
 Image::take($source)
@@ -82,6 +82,11 @@ Image::take(dirname($source) . DS . '3.png')
 Image::take(dirname($source) . DS . '3.png')
      ->rotate(45, '#ffa500', .5)
      ->saveTo($destination . 'mecha-rotate-45-alt.png');
+
+// rotate 3
+Image::take($source)
+     ->rotate(90)
+     ->saveTo($destination . 'flower-rotate-90.png');
 
 // flip h
 Image::take($source)
