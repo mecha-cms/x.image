@@ -42,7 +42,7 @@ class Image extends Genome {
         }
         $fn = 'image' . $nx;
         if (is_callable($fn)) {
-            call_user_func_array($fn, $a);
+            call_user_func($fn, ...$a);
         }
         return $this;
     }
@@ -98,7 +98,7 @@ class Image extends Genome {
         $image = file_get_contents($this->placeholder);
         if ($save !== false) {
             $save = To::path($save);
-            File::write($image)->saveTo($save);
+            File::set($image)->saveTo($save);
         }
         header('Content-Type: ' . self::inspect($this->open, 'mime'));
         File::open($this->placeholder)->delete();
