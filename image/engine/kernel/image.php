@@ -85,7 +85,7 @@ class Image extends Genome {
     }
 
     public function saveAs($name = 'image-%{id}%.png') {
-        return $this->saveTo(Path::D($this->o) . DS . __replace__($name, ['id' => time()]));
+        return $this->saveTo(Path::D($this->o) . DS . candy($name, ['id' => time()]));
     }
 
     // Save away…
@@ -112,7 +112,7 @@ class Image extends Genome {
             $output = [];
             foreach ($file as $v) {
                 $s = getimagesize($v);
-                $output[] = array_merge(File::inspect($v), [
+                $output[] = concat(File::inspect($v), [
                     'width' => $s[0],
                     'height' => $s[1],
                     'bit' => $s['bits'],
@@ -128,7 +128,7 @@ class Image extends Genome {
             return $output;
         }
         $s = getimagesize($file);
-        $output = array_merge(File::inspect($file), array(
+        $output = concat(File::inspect($file), array(
             'width' => $s[0],
             'height' => $s[1],
             'bit' => $s['bits'],
