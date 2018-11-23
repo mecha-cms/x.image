@@ -2,167 +2,119 @@
 
 class Image extends Genome {
 
-    public $open = null;
-    public $o = null;
-    public $placeholder = null;
+    public $path = null;
+    public $o = [];
+    public $blob = null;
 
-    public $GD = false;
+    // Cache!
+    private static $error = null;
+    private static $inspect = [];
 
-    public function gen($file = null) {
-        if (!isset($file)) {
-            if (!file_exists($this->placeholder)) {
-                File::open($this->o)->copyTo($this->placeholder);
-            }
-            $file = $this->placeholder;
-        }
-        $x = Path::X($file);
-        if ($x === 'jpg') {
-            $x = 'jpeg';
-        }
-        $fn = 'imagecreatefrom' . $x;
-        if (is_callable($fn)) {
-            $this->GD = call_user_func($fn, $file);
-        }
-        return $this;
-    }
-
-    public function twin($resource, $x = null) {
-        $file = $this->placeholder;
-        $nx = Path::X($file);
-        if (isset($x)) {
-            $file = preg_replace('#\.[a-z\d]+$#i', '.' . $x, $file);
-            File::open($this->placeholder)->delete();
-            $this->placeholder = $file;
-            $nx = $x;
-        }
-        $a = [$resource, $file];
-        if ($nx === 'jpg' || $nx === 'jpeg') {
-            $nx = 'jpeg';
-            $a[] = 100;
-        }
-        $fn = 'image' . $nx;
-        if (is_callable($fn)) {
-            call_user_func($fn, ...$a);
-        }
-        return $this;
-    }
-
-    public function __construct($file, $fail = false) {
+    public function __construct($path = null, $fail = false) {
         if (!extension_loaded('gd')) {
             if (defined('DEBUG') && DEBUG) {
                 Guardian::abort('<a href="http://www.php.net/manual/en/book.image.php" title="PHP &#x2013; Image Processing and GD" rel="nofollow" target="_blank">PHP GD</a> extension is not installed on your web server.');
             }
             return $fail;
         }
-        if (is_array($file)) {
-            $this->open = [];
-            foreach ($file as $v) {
-                $this->open[] = To::path($v);
+        if (is_array($path)) {
+            foreach ($path as $v) {
+                if (is_file($v)) {
+                    $this->o[] = realpath($v);
+                }
             }
-        } else {
-            $this->open = To::path($file);
+            return parent::__construct();
         }
-        $file = is_array($this->open) ? $this->open[0] : $this->open;
-        $this->o = $file;
-        $this->placeholder = Path::D($file) . DS . '_' . uniqid() . '.' . Path::B($file);
+        if (!isset(self::$error)) {
+            $img = imagecreate(72, 72);
+            $font = 1;
+            $x = (72 - imagefontwidth($font) * 5) / 2;
+            $y = (72 - imagefontheight($font)) / 2;
+            imagecolorallocate($img, 255, 0, 0);
+            imagestring($img, $font, $x, $y, 'ERROR', imagecolorallocate($img, 255, 255, 255));
+            self::$error = $img;
+        }
+        $blob = self::$error;
+        if (is_resource($path)) {
+            $blob = $path;
+        } else if (is_string($path)) {
+            // Create image from string
+            if (strpos($path, 'data:image/') === 0 && strpos($path, ';base64,') !== false) {
+                $blob = imagecreatefromstring(base64_decode(explode(',', $path, 2)[1]));
+            // Create image from file
+            } else if (is_file($path)) {
+                $this->path = realpath($path);
+                $type = mime_content_type($path);
+                if (strpos($type, 'image/') === 0 && function_exists($fn = 'imagecreatefrom' . explode('/', $type)[1])) {
+                    $blob = call_user_func($fn, $path);
+                }
+            }
+        }
+        $this->blob = $blob;
+        parent::__construct();
     }
 
-    public static function take($file, $fail = false) {
-        return new static($file, $fail);
+    public function saveTo(...$lot) {
+        $path = $lot[0];
+        if (!is_dir($dir = dirname($path))) {
+            mkdir($dir, 0775, true);
+        }
+        $type = alt(pathout($path, PATHout_EXTENSION), ['jpg' => 'jpeg']);
+        if (function_exists($fn = 'image' . $type)) {
+            array_unshift($lot, $this->blob);
+            call_user_func($fn, ...$lot);
+            imagedestroy($this->blob);
+        }
     }
 
-    public function saveTo($destination) {
-        if (Is::D($destination)) {
-            $destination .= DS . Path::B($this->o);
+    public function saveAs(...$lot) {
+        if (!isset($this->path)) {
+            Guardian::abort('The <code>' . __FUNCTION__ . '</code> method can only be used for file.');
         }
-        $ox = Path::X($this->o);
-        $nx = Path::X($destination);
-        if ($ox !== $nx || !file_exists($this->placeholder)) {
-            $this->gen()->twin($this->GD, $nx);
-        }
-        File::open($this->placeholder)->moveTo($destination);
-        imagedestroy($this->GD);
-    }
-
-    public function saveAs($name = 'image-%{id}%.png') {
-        return $this->saveTo(Path::D($this->o) . DS . candy($name, ['id' => time()]));
+        $lot[0] = dirname($this->path) . DS . basename($lot[0]);
+        return $this->saveTo(...$lot);
     }
 
     // Save away…
-    public function save() {
-        return $this->saveTo($this->o);
+    public function save(...$lot) {
+        if (!isset($this->path)) {
+            Guardian::abort('The <code>' . __FUNCTION__ . '</code> method can only be used for file.');
+        }
+        array_unshift($lot, $this->path);
+        return $this->saveTo(...$lot);
     }
 
-    public function draw($save = false) {
-        $this->gen();
-        $image = file_get_contents($this->placeholder);
-        if ($save !== false) {
-            $save = To::path($save);
-            File::set($image)->saveTo($save);
+    public function draw(...$lot) {
+        $type = array_shift($lot) ?? 'image/png';
+        header('Content-Type: ' . $type);
+        if (function_exists($fn = 'image' . explode('/', $type)[1])) {
+            array_unshift($lot, $this->blob);
+            call_user_func($fn, ...$lot);
+            imagedestroy($this->blob);
+            exit;
         }
-        header('Content-Type: ' . self::inspect($this->open, 'mime'));
-        File::open($this->placeholder)->delete();
-        imagedestroy($this->GD);
-        echo $image;
+        echo self::$error;
         exit;
     }
 
-    public static function inspect($file, $key = null, $fail = false) {
-        if (is_array($file)) {
-            $output = [];
-            foreach ($file as $v) {
-                $s = getimagesize($v);
-                $output[] = concat(File::inspect($v), [
-                    'width' => $s[0],
-                    'height' => $s[1],
-                    'bit' => $s['bits'],
-                    'mime' => $s['mime']
-                ]);
-            }
-            if (isset($key)) {
-                $output = array_values(array_filter($output, function($v, $k) use($key) {
-                    return $k === $key;
-                }));
-                return !empty($output) ? $output : $fail;
-            }
-            return $output;
-        }
-        $s = getimagesize($file);
-        $output = concat(File::inspect($file), array(
-            'width' => $s[0],
-            'height' => $s[1],
-            'bit' => $s['bits'],
-            'mime' => $s['mime']
-        ));
-        if (isset($key)) {
-            return array_key_exists($key, $output) ? $output[$key] : $fail;
-        }
-        return $output;
-    }
-
-    public function resize($max_width = 100, $max_height = null, $proportional = true, $crop = false) {
-        $this->gen();
-        if (!isset($max_height)) {
-            $max_height = $max_width;
-        }
-        $info = self::inspect($this->open);
-        $old_width = $info['width'];
-        $old_height = $info['height'];
+    public function resize(int $max_width = 72, int $max_height = 72, $ratio = true, $crop = false) {
+        $old_width = imagesx($this->blob);
+        $old_height = imagesy($this->blob);
         $new_width = $max_width;
-        $new_height = $max_height;
+        $new_height = $max_height ?? $max_width;
         $x = 0;
         $y = 0;
         $current_ratio = round($old_width / $old_height, 2);
         $desired_ratio_after = round($max_width / $max_height, 2);
         $desired_ratio_before = round($max_height / $max_width, 2);
-        if ($proportional) {
+        if ($ratio) {
             // Don’t do anything if the new image size is bigger than the original image size
             if($old_width < $max_width && $old_height < $max_height) {
-                return $this->twin($this->GD);
+                return $this;
             }
             if ($crop) {
                 // Wider than the thumbnail (in aspect ratio sense)
-                if($current_ratio > $desired_ratio_after) {
+                if ($current_ratio > $desired_ratio_after) {
                     $new_width = $old_width * $max_height / $old_height;
                 // Wider than the image
                 } else {
@@ -190,238 +142,162 @@ class Image extends Genome {
         // Draw…
         imagealphablending($pallete, false);
         imagesavealpha($pallete, true);
-        imagecopyresampled($pallete, $this->GD, 0, 0, $x, $y, $new_width, $new_height, $old_width, $old_height);
-        $this->twin($pallete);
-        imagedestroy($pallete);
+        imagecopyresampled($pallete, $this->blob, 0, 0, $x, $y, $new_width, $new_height, $old_width, $old_height);
+        $this->blob = $pallete;
         return $this;
     }
 
-    public function crop($x = 72, $y = null, $width = null, $height = null) {
-        if (!isset($width)) {
-            if (!isset($y)) {
-                $y = $x;
-            }
-            return $this->resize($x, $y, true, true);
+    public function crop(...$lot) {
+        $width = (int) ($lot[0] ?? 72);
+        $height = (int) ($lot[1] ?? $width);
+        // `->crop(72, 72)`
+        if (count($lot) < 3) {
+            return $this->resize($width, $height, true, true);
         }
-        if (!isset($height)) {
-            $height = $width;
-        }
-        $this->gen();
+        // `->crop(4, 4, 72, 72)`
+        $x = (int) $lot[0];
+        $y = (int) ($lot[1] ?? $x);
+        $width = (int) ($lot[2] ?? 72);
+        $height = (int) ($lot[3] ?? $width);
         $pallete = imagecreatetruecolor($width, $height);
-        imagecopy($pallete, $this->GD, 0, 0, $x, $y, $width, $height);
-        $this->twin($pallete);
-        imagedestroy($pallete);
+        imagecopy($pallete, $this->blob, 0, 0, $x, $y, $width, $height);
+        $this->blob = $pallete;
         return $this;
     }
 
-    public function brightness($level = 1) {
-        $this->gen();
-        // -255 = min brightness, 0 = no change, +255 = max brightness
-        imagefilter($this->GD, IMG_FILTER_BRIGHTNESS, $level);
-        return $this->twin($this->GD);
-    }
-
-    public function contrast($level = 1) {
-        $this->gen();
-        // -100 = max contrast, 0 = no change, +100 = min contrast (it’s inverted)
-        imagefilter($this->GD, IMG_FILTER_CONTRAST, $level * -1);
-        return $this->twin($this->GD);
-    }
-
-    protected static function _RGB($rgba, $output = null) {
-        if (is_string($rgba) && preg_match('#^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*([\d.]+))?\s*\)$#i', $rgba, $m)) {
-            return [(int) $m[1], (int) $m[2], (int) $m[3], (float) (isset($m[4]) ? $m[4] : 1)];
-        }
-        return false;
-    }
-
-    protected static function _HEX($hex) {
-        if (is_string($hex) && preg_match('#\#?([a-f\d]{3,6})#i', $hex, $m)) {
-            $color = $m[1];
-            if (strlen($color) !== 3 && strlen($color) !== 6) {
-                return false;
-            }
-            if (strlen($color) === 3) {
-                $color = preg_replace('#(.)#', '$1$1', $color);
-            }
-            $s = str_split($color, 2);
-            return [(int) hexdec($s[0]), (int) hexdec($s[1]), (int) hexdec($s[2]), (float) 1];
-        }
-        return false;
-    }
-
-    public function colorize($r = 255, $g = 255, $b = 255, $a = 1) {
-        $this->gen();
-        // For red, green and blue: -255 = min, 0 = no change, +255 = max
-        if (is_array($r)) {
-            if (count($r) === 3) {
-                $r[] = 1; // fix missing alpha channel
-            }
-            list($r, $g, $b, $a) = array_values($r);
-        } else {
-            $bg = (string) $r;
-            if ($bg[0] === '#' && $color = self::_HEX($r)) {
-                $a = $g;
-                list($r, $g, $b) = $color;
-            } else if ($color = self::_RGB($r)) {
-                list($r, $g, $b, $a) = $color;
-            }
-        }
+    public function rotate(int $angle = 0, $background = false, float $a = 1) {
+        $background = self::RGBA($background, $a);
         // For alpha: 127 = transparent, 0 = opaque
-        $a = 127 - ($a * 127);
-        imagefilter($this->GD, IMG_FILTER_COLORIZE, $r, $g, $b, $a);
-        return $this->twin($this->GD);
-    }
-
-    public function grayscale() {
-        $this->gen();
-        imagefilter($this->GD, IMG_FILTER_GRAYSCALE);
-        return $this->twin($this->GD);
-    }
-
-    public function negate() {
-        $this->gen();
-        imagefilter($this->GD, IMG_FILTER_NEGATE);
-        return $this->twin($this->GD);
-    }
-
-    public function emboss($level = 1) {
-        $level = round($level);
-        for ($i = 0; $i < $level; ++$i) {
-            $this->gen();
-            imagefilter($this->GD, IMG_FILTER_EMBOSS);
-            $this->twin($this->GD);
-        }
+        $background[3] = 127 - ($background[3] * 127);
+        $background = imagecolorallocatealpha($this->blob, ...$background);
+        imagealphablending($this->blob, false);
+        imagesavealpha($this->blob, true);
+        // The angle value in `imagerotate` function is inverted
+        $this->blob = imagerotate($this->blob, $angle * -1, $background, 0);
+        imagealphablending($this->blob, false);
+        imagesavealpha($this->blob, true);
         return $this;
     }
 
-    public function blur($level = 1) {
-        $level = round($level);
-        for ($i = 0; $i < $level; ++$i) {
-            $this->gen();
-            imagefilter($this->GD, IMG_FILTER_GAUSSIAN_BLUR);
-            $this->twin($this->GD);
-        }
+    public function flip(string $dir = 'h') {
+        $flip = alt(strtolower($dir[0]), [
+            'h' => IMG_FLIP_HORIZONTAL,
+            'v' => IMG_FLIP_VERTICAL,
+            'b' => IMG_FLIP_BOTH
+        ], 'h');
+        imageflip($this->blob, $flip);
         return $this;
     }
 
-    public function sharpen($level = 1) {
-        $level = round($level);
-        $matrix = [
-            [-1, -1, -1],
-            [-1, 16, -1],
-            [-1, -1, -1],
-        ];
-        $divisor = array_sum(array_map('array_sum', $matrix));
-        for ($i = 0; $i < $level; ++$i) {
-            $this->gen();
-            imageconvolution($this->GD, $matrix, $divisor, 0);
-            $this->twin($this->GD);
-        }
-        return $this;
-    }
-
-    public function pixelate($level = 1, $advance = false) {
-        $this->gen();
-        imagefilter($this->GD, IMG_FILTER_PIXELATE, $level, $advance);
-        return $this->twin($this->GD);
-    }
-
-    public function rotate($angle = 0, $bg = false, $alpha_for_hex = 1) {
-        $this->gen();
-        if ($bg === false) {
-            $bg = [0, 0, 0, 0]; // transparent
-        }
-        if (is_array($bg)) {
-            if (count($bg) === 3) {
-                $bg[] = 1; // fix missing alpha channel
-            }
-            list($r, $g, $b, $a) = array_values($bg);
-        } else {
-            $bg = (string) $bg;
-            if ($bg[0] === '#' && $color = self::_HEX($bg)) {
-                list($r, $g, $b) = $color;
-                $a = $alpha_for_hex;
-            } else if ($color = self::_RGB($bg)) {
-                list($r, $g, $b, $a) = $color;
-            }
-        }
-        $a = 127 - ($a * 127);
-        $bg = imagecolorallocatealpha($this->GD, $r, $g, $b, $a);
-        imagealphablending($this->GD, false);
-        imagesavealpha($this->GD, true);
-        // The angle value in `imagerotate` function is also inverted
-        $rotated = imagerotate($this->GD, (floor($angle) * -1), $bg, 0);
-        imagealphablending($rotated, false);
-        imagesavealpha($rotated, true);
-        $this->twin($rotated);
-        imagedestroy($rotated);
-        return $this;
-    }
-
-    public function flip($direction = 'horizontal') {
-        $this->gen();
-        switch (strtolower($direction[0])) {
-            // `horizontal`, `vertical` or `both` ?
-            case 'h': imageflip($this->GD, IMG_FLIP_HORIZONTAL); break;
-            case 'v': imageflip($this->GD, IMG_FLIP_VERTICAL); break;
-            case 'b': imageflip($this->GD, IMG_FLIP_BOTH); break;
-        }
-        return $this->twin($this->GD);
-    }
-
-    public function merge($gap = 0, $direction = 'vertical', $bg = false, $alpha_for_hex = 1) {
+    public function merge(int $gap = 0, string $dir = 'v', $background = false, float $a = 1) {
         $bucket = $max_width = $max_height = [];
         $width = $height = 0;
-        $direction = strtolower($direction);
-        $this->open = (array) $this->open;
-        foreach (self::inspect($this->open) as $info) {
-            $bucket[] = [
-                'width' => $info['width'],
-                'height' => $info['height']
-            ];
-            $max_width[] = $info['width'];
-            $max_height[] = $info['height'];
-            $width += $info['width'] + $gap;
-            $height += $info['height'] + $gap;
+        $dir = strtolower($dir)[0];
+        foreach ($this->o as $v) {
+            $v = array_slice(getimagesize($v), 0, 2);
+            $bucket[] = $v;
+            $max_width[] = $v[0];
+            $max_height[] = $v[1];
+            $width += $v[0] + $gap;
+            $height += $v[1] + $gap;
         }
-        if (!$bg) {
-            $bg = [0, 0, 0, 0]; // transparent
-        }
-        if (is_array($bg)) {
-            if (count($bg) === 3) {
-                $bg[] = 1; // fix missing alpha channel
-            }
-            list($r, $g, $b, $a) = array_values($bg);
-        } else {
-            $bg = (string) $bg;
-            if ($bg[0] === '#' && $color = self::_HEX($bg)) {
-                list($r, $g, $b) = $color;
-                $a = $alpha_for_hex;
-            } else if ($color = self::_RGB($bg)) {
-                list($r, $g, $b, $a) = $color;
-            }
-        }
-        $a = 127 - ($a * 127);
-        if ($direction[0] === 'v') {
+        if ($dir === 'v') {
             $pallete = imagecreatetruecolor(max($max_width), $height - $gap);
         } else {
             $pallete = imagecreatetruecolor($width - $gap, max($max_height));
         }
-        $bg = imagecolorallocatealpha($pallete, $r, $g, $b, $a);
-        imagefill($pallete, 0, 0, $bg);
+        $background = self::RGBA($background, $a);
+        // For alpha: 127 = transparent, 0 = opaque
+        $background[3] = 127 - ($background[3] * 127);
+        $background = imagecolorallocatealpha($pallete, ...$background);
+        imagefill($pallete, 0, 0, $background);
         imagealphablending($pallete, true);
         imagesavealpha($pallete, true);
         $start_width_from = $start_height_from = 0;
-        for ($i = 0, $count = count($this->open); $i < $count; ++$i) {
-            $this->gen($this->open[$i]);
-            imagealphablending($this->GD, false);
-            imagesavealpha($this->GD, true);
-            imagecopyresampled($pallete, $this->GD, $start_width_from, $start_height_from, 0, 0, $bucket[$i]['width'], $bucket[$i]['height'], $bucket[$i]['width'], $bucket[$i]['height']);
-            $start_width_from += $direction[0] === 'h' ? $bucket[$i]['width'] + $gap : 0;
-            $start_height_from += $direction[0] === 'v' ? $bucket[$i]['height'] + $gap : 0;
+        foreach (array_values($this->o) as $k => $v) {
+            $blob = (new static($v))->blob;
+            imagealphablending($blob, false);
+            imagesavealpha($blob, true);
+            imagecopyresampled($pallete, $blob, $start_width_from, $start_height_from, 0, 0, $bucket[$k][0], $bucket[$k][1], $bucket[$k][0], $bucket[$k][1]);
+            $start_width_from += $dir === 'h' ? $bucket[$k][0] + $gap : 0;
+            $start_height_from += $dir === 'v' ? $bucket[$k][1] + $gap : 0;
         }
-        return $this->twin($pallete, 'png');
+        $this->blob = $pallete;
+        return $this;
+    }
+
+    public function bright($level = 1) {
+        // -255 = min brightness, 0 = no change, +255 = max brightness
+        $level = self::range($level, [-255, 255], [0, 100]); // normalized to (0–100)
+        imagefilter($this->blob, IMG_FILTER_BRIGHTNESS, $level);
+        return $this;
+    }
+
+    public function contrast($level = 1) {
+        // -100 = max contrast, 0 = no change, +100 = min contrast (it’s inverted)
+        $level = self::range($level, [-100, 100], [0, 100]); // normalized to (0–100)
+        imagefilter($this->blob, IMG_FILTER_CONTRAST, $level * -1);
+        return $this;
+    }
+
+    public function color($color, $a = 1) {
+        $color = self::RGBA($color, $a);
+        // For alpha: 127 = transparent, 0 = opaque
+        $color[3] = 127 - ($color[3] * 127);
+        imagefilter($this->blob, IMG_FILTER_COLORIZE, ...$color);
+        return $this;
+    }
+
+    public function filter(...$lot) {
+        $kin = array_shift($lot);
+        if (self::_('filter.' . $kin)) {
+            return parent::__call('filter.' . $kin, $lot);
+        }
+        return $this;
+    }
+
+    public static function open($path, $fail = false) {
+        return new static($path, $fail);
+    }
+
+    public static function inspect(string $path, string $key = null, $fail = false) {
+        $id = json_encode(func_get_args());
+        if (isset(self::$inspect[$id])) {
+            $out = self::$inspect[$id];
+            return isset($key) ? Anemon::get($out, $key, $fail) : $out;
+        }
+        $out = File::inspect($path);
+        $z = getimagesize($path);
+        $out['width'] = $z[0] ?? null;
+        $out['height'] = $z[1] ?? null;
+        $out['bit'] = $z['bits'] ?? null;
+        $out['channel'] = $z['channels'] ?? null;
+        self::$inspect[$id] = $out;
+        return isset($key) ? Anemon::get($out, $key, $fail) : $out;
+    }
+
+    // <https://stackoverflow.com/a/14224813/1163000>
+    public static function range($value, $a, $b) {
+        return ($value - $a[0]) * ($b[1] - $b[0]) / ($a[1] - $a[0]) + $b[0];
+    }
+
+    public static function RGBA($in, float $a = 1) {
+        if (is_array($in)) {
+            return extend([0, 0, 0, (float) $a], $in);
+        } else if (is_string($in)) {
+            if (strpos($in, '#') === 0 && ctype_xdigit(substr($in, 1))) {
+                $in = substr($in, 1);
+                if (strlen($in) === 3) {
+                    $in = preg_replace('#.#', '$0$0', $in);
+                }
+                $in = str_split($in, 2);
+                return [(int) hexdec($in[0]), (int) hexdec($in[1]), (int) hexdec($in[2]), (float) $a];
+            // <https://www.regular-expressions.out/numericranges.html>
+            } else if (strpos($in, 'rgb') === 0 && preg_match('#^rgba?\(\s*([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\s*,\s*([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\s*,\s*([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])(?:\s*,\s*([01]|0?\.\d+))?\)$#', $in, $m)) {
+                return [(int) $m[1], (int) $m[2], (int) $m[3], (float) ($m[4] ?? $a)];
+            }
+        }
+        return [0, 0, 0, 0]; // Transparent
     }
 
 }
