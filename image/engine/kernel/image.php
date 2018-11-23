@@ -59,7 +59,7 @@ class Image extends Genome {
         if (!is_dir($dir = dirname($path))) {
             mkdir($dir, 0775, true);
         }
-        $type = alt(pathout($path, PATHout_EXTENSION), ['jpg' => 'jpeg']);
+        $type = alt(pathinfo($path, PATHINFO_EXTENSION), ['jpg' => 'jpeg']);
         if (function_exists($fn = 'image' . $type)) {
             array_unshift($lot, $this->blob);
             call_user_func($fn, ...$lot);
