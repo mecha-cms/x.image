@@ -3,11 +3,12 @@
 class Image extends Genome {
 
     public $path = null;
-    public $o = [];
+    public $lot = [];
     public $blob = null;
 
     // Cache!
-    private static $error = null;
+    private static $x = null;
+    private static $fetch = [];
     private static $inspect = [];
 
     public function __construct($path = null, $fail = false) {
@@ -20,27 +21,41 @@ class Image extends Genome {
         if (is_array($path)) {
             foreach ($path as $v) {
                 if (is_file($v)) {
-                    $this->o[] = realpath($v);
+                    $this->lot[] = realpath($v);
                 }
             }
             return parent::__construct();
         }
-        if (!isset(self::$error)) {
+        if (!isset(self::$x)) {
             $img = imagecreate(72, 72);
             $font = 1;
             $x = (72 - imagefontwidth($font) * 5) / 2;
             $y = (72 - imagefontheight($font)) / 2;
             imagecolorallocate($img, 255, 0, 0);
             imagestring($img, $font, $x, $y, 'ERROR', imagecolorallocate($img, 255, 255, 255));
-            self::$error = $img;
+            self::$x = $img;
         }
-        $blob = self::$error;
+        $blob = self::$x;
         if (is_resource($path)) {
             $blob = $path;
         } else if (is_string($path)) {
             // Create image from string
             if (strpos($path, 'data:image/') === 0 && strpos($path, ';base64,') !== false) {
                 $blob = imagecreatefromstring(base64_decode(explode(',', $path, 2)[1]));
+            // Create image from remote URL
+            } else if (strpos($path, '/') === 0 || strpos($path, '://') !== false) {
+                $path = To::path($url = URL::long($path));
+                // Local URL
+                if (strpos($path, ROOT . DS) === 0 && is_file($path)) {
+                    return new static($path, $fail);
+                }
+                // Load from cache
+                if (isset(self::$fetch[$url])) {
+                    $blob = self::$fetch[$url];
+                // Fetch URL
+                } else {
+                    $blob = self::$fetch[$url] = HTTP::fetch($url, self::$x);
+                }
             // Create image from file
             } else if (is_file($path)) {
                 $this->path = realpath($path);
@@ -93,7 +108,7 @@ class Image extends Genome {
             imagedestroy($this->blob);
             exit;
         }
-        echo self::$error;
+        echo self::$x;
         exit;
     }
 
@@ -166,7 +181,7 @@ class Image extends Genome {
     }
 
     public function rotate(int $angle = 0, $background = false, float $a = 1) {
-        $background = self::RGBA($background, $a);
+        $background = $this->_color($background, $a);
         // For alpha: 127 = transparent, 0 = opaque
         $background[3] = 127 - ($background[3] * 127);
         $background = imagecolorallocatealpha($this->blob, ...$background);
@@ -193,7 +208,7 @@ class Image extends Genome {
         $bucket = $max_width = $max_height = [];
         $width = $height = 0;
         $dir = strtolower($dir)[0];
-        foreach ($this->o as $v) {
+        foreach ($this->lot as $v) {
             $v = array_slice(getimagesize($v), 0, 2);
             $bucket[] = $v;
             $max_width[] = $v[0];
@@ -206,7 +221,7 @@ class Image extends Genome {
         } else {
             $pallete = imagecreatetruecolor($width - $gap, max($max_height));
         }
-        $background = self::RGBA($background, $a);
+        $background = $this->_color($background, $a);
         // For alpha: 127 = transparent, 0 = opaque
         $background[3] = 127 - ($background[3] * 127);
         $background = imagecolorallocatealpha($pallete, ...$background);
@@ -214,7 +229,7 @@ class Image extends Genome {
         imagealphablending($pallete, true);
         imagesavealpha($pallete, true);
         $start_width_from = $start_height_from = 0;
-        foreach (array_values($this->o) as $k => $v) {
+        foreach (array_values($this->lot) as $k => $v) {
             $blob = (new static($v))->blob;
             imagealphablending($blob, false);
             imagesavealpha($blob, true);
@@ -228,20 +243,20 @@ class Image extends Genome {
 
     public function bright($level = 1) {
         // -255 = min brightness, 0 = no change, +255 = max brightness
-        $level = self::range($level, [-255, 255], [0, 100]); // normalized to (0–100)
+        $level = $this->_range($level, [-255, 255], [0, 100]); // normalized to (0–100)
         imagefilter($this->blob, IMG_FILTER_BRIGHTNESS, $level);
         return $this;
     }
 
     public function contrast($level = 1) {
         // -100 = max contrast, 0 = no change, +100 = min contrast (it’s inverted)
-        $level = self::range($level, [-100, 100], [0, 100]); // normalized to (0–100)
+        $level = $this->_range($level, [-100, 100], [0, 100]); // normalized to (0–100)
         imagefilter($this->blob, IMG_FILTER_CONTRAST, $level * -1);
         return $this;
     }
 
     public function color($color, $a = 1) {
-        $color = self::RGBA($color, $a);
+        $color = $this->_color($color, $a);
         // For alpha: 127 = transparent, 0 = opaque
         $color[3] = 127 - ($color[3] * 127);
         imagefilter($this->blob, IMG_FILTER_COLORIZE, ...$color);
@@ -277,11 +292,11 @@ class Image extends Genome {
     }
 
     // <https://stackoverflow.com/a/14224813/1163000>
-    public static function range($value, $a, $b) {
+    protected function _range($value, $a, $b) {
         return ($value - $a[0]) * ($b[1] - $b[0]) / ($a[1] - $a[0]) + $b[0];
     }
 
-    public static function RGBA($in, float $a = 1) {
+    protected function _color($in, float $a = 1) {
         if (is_array($in)) {
             return extend([0, 0, 0, (float) $a], $in);
         } else if (is_string($in)) {

@@ -6,8 +6,28 @@ type: Markdown
 version: 2.1.0
 ...
 
+### Local Image
+
 ~~~ .php
-Image::open('photo.jpg')->resize(200)->saveAs('photo-2.jpg');
+Image::open('.\path\to\photo.jpg')
+    ->crop(72)
+    ->saveAs('photo-2.jpg');
+~~~
+
+### Remote Image
+
+~~~ .php
+Image::open('http://example.com/image.jpg')
+    ->crop(72)
+    ->saveAs('photo-2.jpg');
+~~~
+
+### Base64 Image
+
+~~~ .php
+Image::open('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD …')
+    ->crop(72)
+    ->saveAs('photo-2.jpg');
 ~~~
 
 <!-- block:donate -->
