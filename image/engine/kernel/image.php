@@ -74,8 +74,20 @@ class Image extends Genome {
         if (!is_dir($dir = dirname($path))) {
             mkdir($dir, 0775, true);
         }
-        $type = alt(pathinfo($path, PATHINFO_EXTENSION), ['jpg' => 'jpeg']);
+        $x = pathinfo($path, PATHINFO_EXTENSION);
+        $type = alt($x, ['jpg' => 'jpeg']);
         if (function_exists($fn = 'image' . $type)) {
+            // Normalized quality from `0` to `100`
+            if (isset($lot[1])) {
+                $lot[1] = alt($x, [
+                    'gif' => null, // GIF image type does not have quality option
+                    'jpg' => $lot[1], // No change
+                    'png' => m(b($lot[1], 0, 100), [0, 9], [0, 100]),
+                    'wbmp' => null, // WBMP image type does not have quality option
+                    'webp' => null, // WEBP image type does not have quality option
+                    'xbm' => null // XBM image type does not have quality option
+                ], $lot[1]);
+            }
             array_unshift($lot, $this->blob);
             call_user_func($fn, ...$lot);
             imagedestroy($this->blob);
@@ -102,7 +114,11 @@ class Image extends Genome {
     public function draw(...$lot) {
         $type = array_shift($lot) ?? 'image/png';
         header('Content-Type: ' . $type);
-        if (function_exists($fn = 'image' . explode('/', $type)[1])) {
+        if (function_exists($fn = 'image' . alt(explode('/', $type)[1], [
+            'vnd.wap.wbmp' => 'wbmp',
+            // => 'webp',
+            // => 'xbm'
+        ]))) {
             array_unshift($lot, $this->blob);
             call_user_func($fn, ...$lot);
             imagedestroy($this->blob);
@@ -182,8 +198,6 @@ class Image extends Genome {
 
     public function rotate(int $angle = 0, $background = false, float $a = 1) {
         $background = $this->_color($background, $a);
-        // For alpha: 127 = transparent, 0 = opaque
-        $background[3] = 127 - ($background[3] * 127);
         $background = imagecolorallocatealpha($this->blob, ...$background);
         imagealphablending($this->blob, false);
         imagesavealpha($this->blob, true);
@@ -222,8 +236,6 @@ class Image extends Genome {
             $pallete = imagecreatetruecolor($width - $gap, max($max_height));
         }
         $background = $this->_color($background, $a);
-        // For alpha: 127 = transparent, 0 = opaque
-        $background[3] = 127 - ($background[3] * 127);
         $background = imagecolorallocatealpha($pallete, ...$background);
         imagefill($pallete, 0, 0, $background);
         imagealphablending($pallete, true);
@@ -241,20 +253,23 @@ class Image extends Genome {
         return $this;
     }
 
+    // Normalized from `0` to `100`
     public function bright($level = 1) {
         // -255 = min brightness, 0 = no change, +255 = max brightness
-        $level = $this->_range($level, [-255, 255], [0, 100]); // normalized to (0–100)
+        $level = m(b($level, 0, 100), [-255, 255], [0, 100]);
         imagefilter($this->blob, IMG_FILTER_BRIGHTNESS, $level);
         return $this;
     }
 
+    // Normalized from `0` to `100`
     public function contrast($level = 1) {
         // -100 = max contrast, 0 = no change, +100 = min contrast (it’s inverted)
-        $level = $this->_range($level, [-100, 100], [0, 100]); // normalized to (0–100)
+        $level = m(b($level, 0, 100), [-100, 100], [0, 100]);
         imagefilter($this->blob, IMG_FILTER_CONTRAST, $level * -1);
         return $this;
     }
 
+    // Normalized alpha value from `0` to `1`
     public function color($color, $a = 1) {
         $color = $this->_color($color, $a);
         // For alpha: 127 = transparent, 0 = opaque
@@ -289,11 +304,6 @@ class Image extends Genome {
         $out['channel'] = $z['channels'] ?? null;
         self::$inspect[$id] = $out;
         return isset($key) ? Anemon::get($out, $key, $fail) : $out;
-    }
-
-    // <https://stackoverflow.com/a/14224813/1163000>
-    protected function _range($value, $a, $b) {
-        return ($value - $a[0]) * ($b[1] - $b[0]) / ($a[1] - $a[0]) + $b[0];
     }
 
     protected function _color($in, float $a = 1) {
