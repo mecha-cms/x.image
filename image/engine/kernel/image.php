@@ -56,8 +56,8 @@ class Image extends Genome {
                 } else if (isset(self::$fetch[$url])) {
                     $blob = self::$fetch[$url];
                 // Fetch URL
-                } else {
-                    $blob = self::$fetch[$url] = imagecreatefromstring(HTTP::fetch($url, ""));
+                } else if ($fetch = HTTP::fetch($url)) {
+                    $blob = self::$fetch[$url] = imagecreatefromstring($fetch);
                 }
             // Create image from file
             } else if (is_file($path)) {
