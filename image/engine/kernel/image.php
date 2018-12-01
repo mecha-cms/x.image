@@ -47,14 +47,17 @@ class Image extends Genome {
                 $path = To::path($url = URL::long($path));
                 // Local URL
                 if (strpos($path, ROOT . DS) === 0 && is_file($path)) {
-                    return new static($path, $fail);
-                }
+                    $this->path = $path;
+                    $type = mime_content_type($path);
+                    if (strpos($type, 'image/') === 0 && function_exists($fn = 'imagecreatefrom' . explode('/', $type)[1])) {
+                        $blob = call_user_func($fn, $path);
+                    }
                 // Load from cache
-                if (isset(self::$fetch[$url])) {
+                } else if (isset(self::$fetch[$url])) {
                     $blob = self::$fetch[$url];
                 // Fetch URL
                 } else {
-                    $blob = self::$fetch[$url] = HTTP::fetch($url, self::$x);
+                    $blob = self::$fetch[$url] = imagecreatefromstring(HTTP::fetch($url, ""));
                 }
             // Create image from file
             } else if (is_file($path)) {
