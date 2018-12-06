@@ -11,13 +11,7 @@ class Image extends Genome {
     private static $fetch = [];
     private static $inspect = [];
 
-    public function __construct($path = null, $fail = false) {
-        if (!extension_loaded('gd')) {
-            if (defined('DEBUG') && DEBUG) {
-                Guardian::abort('<a href="http://www.php.net/manual/en/book.image.php" title="PHP &#x2013; Image Processing and GD" rel="nofollow" target="_blank">PHP GD</a> extension is not installed on your web server.');
-            }
-            return $fail;
-        }
+    public function __construct($path = null) {
         if (is_array($path)) {
             foreach ($path as $v) {
                 if (is_file($v)) {
@@ -289,8 +283,8 @@ class Image extends Genome {
         return $this;
     }
 
-    public static function open($path, $fail = false) {
-        return new static($path, $fail);
+    public static function open($path) {
+        return new static($path);
     }
 
     public static function inspect(string $path, string $key = null, $fail = false) {
