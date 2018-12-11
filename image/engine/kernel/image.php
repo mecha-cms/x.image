@@ -283,6 +283,11 @@ class Image extends Genome {
         return $this;
     }
 
+    public static function from($path) {
+        return new static($path);
+    }
+
+    // Alias for `from`
     public static function open($path) {
         return new static($path);
     }
