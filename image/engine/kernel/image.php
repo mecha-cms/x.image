@@ -292,6 +292,7 @@ class Image extends Genome {
         return new static($path);
     }
 
+    /* TODO
     public static function inspect(string $path, string $key = null, $fail = false) {
         $id = json_encode(func_get_args());
         if (isset(self::$inspect[$id])) {
@@ -307,6 +308,7 @@ class Image extends Genome {
         self::$inspect[$id] = $out;
         return isset($key) ? Anemon::get($out, $key, $fail) : $out;
     }
+    */
 
     protected function _color($in, float $a = 1) {
         if (is_array($in)) {

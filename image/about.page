@@ -3,7 +3,7 @@ title: Image
 description: Image manipulation using [GD](http://www.php.net/manual/en/book.image.php "PHP – Image Processing and GD") library.
 author: Taufik Nurrohman
 type: Markdown
-version: 2.1.0
+version: 2.1.1
 ...
 
 ### Local Image
