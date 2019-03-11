@@ -2,7 +2,7 @@
 
 if (!extension_loaded('gd')) {
     if (defined('DEBUG') && DEBUG) {
-        Guardian::abort('<a href="http://www.php.net/manual/en/book.image.php" title="PHP &#x2013; Image Processing and GD" rel="nofollow" target="_blank">PHP GD</a> extension is not installed on your web server.');
+        Guard::abort('<a href="http://www.php.net/manual/en/book.image.php" title="PHP &#x2013; Image Processing and GD" rel="nofollow" target="_blank">PHP GD</a> extension is not installed on your web server.');
     }
 } else {}
 
