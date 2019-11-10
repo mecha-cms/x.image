@@ -1,13 +1,13 @@
 <?php
 
-if (!extension_loaded('gd')) {
+if (!extension_loaded('zip')) {
     if (defined('DEBUG') && DEBUG) {
-        Guard::abort('<a href="http://www.php.net/manual/en/book.image.php" title="PHP &#x2013; Image Processing and GD" rel="nofollow" target="_blank">PHP GD</a> extension is not installed on your web server.');
+        Guard::abort(i('Missing %s extension.', 'PHP <code>gd</code>'));
     }
-} else {}
+} else {
+    if (null !== State::get('x.page')) {
+        require __DIR__ . DS . 'engine' . DS . 'r' . DS . 'hook.php';
+    }
+}
 
-/*
-require EXTEND . DS . 'image' . DS . 'lot' . DS . 'asset' . DS . '-test' . DS . 'test-5.php';
-
-exit;
-*/
+// require __DIR__ . DS . 'lot' . DS . 'asset' . DS . '.test' . DS . 'test-1.php';
