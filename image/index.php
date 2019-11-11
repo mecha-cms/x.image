@@ -1,6 +1,6 @@
 <?php
 
-if (!extension_loaded('zip')) {
+if (!extension_loaded('gd')) {
     if (defined('DEBUG') && DEBUG) {
         Guard::abort(i('Missing %s extension.', 'PHP <code>gd</code>'));
     }
