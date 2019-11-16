@@ -25,11 +25,12 @@ namespace _\lot\x\page\image {
         $path = \To::path(\URL::long($image));
         $path = \ASSET . \DS . '.cache' . \DS . \md5($image . ';' . $w . 'x' . $h . ';' . ($q ?? "\0")) . '.' . $x;
         if (\is_file($path)) {
-            return \To::URL($path);
+            $image = \To::URL($path); // Return the image cache
         } else if ($image && null !== \State::get('x.image')) {
             $blob = new \Image($image);
-            $blob->crop($w, $h)->store($path, $q);
-            return \To::URL($path);
+            // `$page->image($width, $height, $quality)`
+            $blob->crop($w, $h)->store($path, $q); // Generate image cache
+            $image = \To::URL($path); // Return the image cache
         }
         return $image;
     }

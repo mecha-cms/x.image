@@ -3,23 +3,13 @@ title: Image
 description: Image resizer and cropper.
 author: Taufik Nurrohman
 type: Markdown
-version: 2.2.1
+version: 2.2.2
 
 use:
   '.\lot\x\page': 0
 ...
 
-This extension provides various API to work with image files. This extension also adds `$page->image` and `$page->images` property to the current page object. The `$page->image` property will contain the first image URL found in the current page content, and `$page->images` property will contain list of images URL found in the current page content. This extension will skip the parsing process if you set the `$page->image` and `$page->images` property explicitly in the page file header:
-
-~~~ .html.php
-<?php foreach ($pages as $page): ?>
-<article>
-  <?php if ($image = $page->image(72, 72)): ?>
-  <img alt="" src="<?= $image; ?>">
-  <?php endif; ?>
-</article>
-<?php endforeach; ?>
-~~~
+This extension provides various API to work with BMP, GIF, JPEG, PNG and WEBP images.
 
 ### API Usage
 
@@ -142,4 +132,18 @@ Draw as JPEG image:
 
 ~~~ .php
 $blob->draw(null, 50, 'image/jpeg');
+~~~
+
+---
+
+This extension will also add `image` and `images` property to the current `$page` object. The `image` property will contain the first image URL found in the current page content, and `images` property will contain list of images URL found in the current page content. This extension will skip the parsing process if you set the `image` and `images` property explicitly in the page file header:
+
+~~~ .html.php
+<?php foreach ($pages as $page): ?>
+<article>
+  <?php if ($image = $page->image(72, 72)): ?>
+  <img alt="" src="<?= $image; ?>">
+  <?php endif; ?>
+</article>
+<?php endforeach; ?>
 ~~~
