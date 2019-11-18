@@ -134,9 +134,9 @@ Draw as JPEG image:
 $blob->draw(null, 50, 'image/jpeg');
 ~~~
 
----
+### Image API with Page Extension
 
-This extension will also add `image` and `images` property to the current `$page` object. The `image` property will contain the first image URL found in the current page content, and `images` property will contain list of images URL found in the current page content. This extension will skip the parsing process if you set the `image` and `images` property explicitly in the page file header:
+This extension will also add `image` and `images` property to the current `$page` object. The `image` property will contain the first image URL found in the current page content, and `images` property will contain list of images URL found in the current page content. This extension will skip the parsing process if you set the `image` and `images` property values explicitly in the page file header:
 
 ~~~ .html.php
 <?php foreach ($pages as $page): ?>

@@ -15,7 +15,7 @@ namespace _\lot\x\page\image {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
         }
-        if (0 === \strpos($image, \To::URL(\ASSET) . '/.cache/')) {
+        if (0 === \strpos($image, \To::URL(\ASSET) . '/.image/')) {
             return $image;
         }
         $w = \ceil($lot[0]);
@@ -23,14 +23,14 @@ namespace _\lot\x\page\image {
         $q = $lot[2] ?? null;
         $x = \Path::X($image) ?? 'jpg';
         $path = \To::path(\URL::long($image));
-        $path = \ASSET . \DS . '.cache' . \DS . \md5($image . ';' . $w . 'x' . $h . ';' . ($q ?? "\0")) . '.' . $x;
-        if (\is_file($path)) {
-            $image = \To::URL($path); // Return the image cache
-        } else if ($image && null !== \State::get('x.image')) {
-            $blob = new \Image($image);
+        $cache = \ASSET . \DS . '.image' . \DS . $w . ($h !== $w ? \DS . $h : "") . \DS . \dechex(\crc32($image . ';' . ($q ?? "\0"))) . '.' . $x;
+        if ($image && null !== \State::get('x.image')) {
+            $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($width, $height, $quality)`
-            $blob->crop($w, $h)->store($path, $q); // Generate image cache
-            $image = \To::URL($path); // Return the image cache
+            $blob->crop($w, $h)->store($cache, $q); // Generate image cache
+            $image = \To::URL($cache); // Return the image cache
+        } else {
+            $image = \To::URL($path);
         }
         return $image;
     }
