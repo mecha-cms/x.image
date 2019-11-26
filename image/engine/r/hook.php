@@ -15,7 +15,7 @@ namespace _\lot\x\page\image {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
         }
-        if (0 === \strpos($image, \To::URL(\ASSET) . '/.cache/')) {
+        if (0 === \strpos($image, \To::URL(\LOT) . '/asset/.cache/')) {
             return $image;
         }
         $w = \ceil($lot[0]);
@@ -23,7 +23,7 @@ namespace _\lot\x\page\image {
         $q = $lot[2] ?? null;
         $x = \Path::X($image) ?? 'jpg';
         $path = \To::path(\URL::long($image));
-        $cache = \ASSET . \DS . '.cache' . \DS . \trim(\chunk_split(\md5($w . '.' . $h . '.' . $q . '.' . $image), 2, \DS), \DS) . '.' . $x;
+        $cache = \LOT . \DS . 'asset' . \DS . '.cache' . \DS . \trim(\chunk_split(\md5($w . '.' . $h . '.' . $q . '.' . $image), 2, \DS), \DS) . '.' . $x;
         if ($image && null !== \State::get('x.image')) {
             $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($width, $height, $quality)`
