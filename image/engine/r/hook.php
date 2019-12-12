@@ -46,26 +46,14 @@ namespace _\lot\x\page {
         // Get URL from `content` data
         if ($content = $this->content) {
             // Get URL from `<img>` tag
-            if (false !== \strpos($content, '<img ')) {
-                $parser = new \DOMDocument('1.0', 'UTF-8');
-                $parser->strictErrorChecking = false;
-                $parser->validateOnParse = true;
-                @$parser->loadHTML($content); // TODO
-                if ($img = $parser->getElementsByTagName('img')->item(0)) {
-                    if ("" !== ($src = $img->getAttribute('src'))) {
-                        return $src;
-                    }
+            if (false !== \strpos($content, '<img ') && \preg_match('/<img(\s[^>]+)>/', $content, $m)) {
+                if (false !== \strpos($m[1], ' src=')) {
+                    return \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($m[1], ' src='), 5) . ' ', ' ', true), '\'"'));
                 }
             // Get URL from `<video>` tag
-            } else if (false !== \strpos($content, '<video ')) {
-                $parser = new \DOMDocument('1.0', 'UTF-8');
-                $parser->strictErrorChecking = false;
-                $parser->validateOnParse = true;
-                @$parser->loadHTML($content); // TODO
-                if ($video = $parser->getElementsByTagName('video')->item(0)) {
-                    if ("" !== ($poster = $video->getAttribute('poster'))) {
-                        return $poster;
-                    }
+            } else if (false !== \strpos($content, '<video ') && \preg_match('/<video(\s[^>]+)>/', $content, $m)) {
+                if (false !== \strpos($m[1], ' poster=')) {
+                    return \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($m[1], ' poster='), 8) . ' ', ' ', true), '\'"'));
                 }
             }
         }
@@ -83,25 +71,17 @@ namespace _\lot\x\page {
         // Get URL from `content` data
         if ($content = $this->content) {
             // Get URL from `<img>` tag
-            if (false !== \strpos($content, '<img ')) {
-                $parser = new \DOMDocument('1.0', 'UTF-8');
-                $parser->strictErrorChecking = false;
-                $parser->validateOnParse = true;
-                @$parser->loadHTML($content); // TODO
-                foreach ($parser->getElementsByTagName('img') as $img) {
-                    if ("" !== ($src = $img->getAttribute('src'))) {
-                        $images[] = $src;
+            if (false !== \strpos($content, '<img ') && \preg_match_all('/<img(\s[^>]+)>/', $content, $m)) {
+                foreach ($m[1] as $v) {
+                    if (false !== \strpos($v, ' src=')) {
+                        $images[] = \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($v, ' src='), 5) . ' ', ' ', true), '\'"'));
                     }
                 }
             // Get URL from `<video>` tag
-            } else if (false !== \strpos($content, '<video ')) {
-                $parser = new \DOMDocument('1.0', 'UTF-8');
-                $parser->strictErrorChecking = false;
-                $parser->validateOnParse = true;
-                @$parser->loadHTML($content); // TODO
-                foreach ($parser->getElementsByTagName('video') as $video) {
-                    if ("" !== ($poster = $video->getAttribute('poster'))) {
-                        $images[] = $poster;
+            } else if (false !== \strpos($content, '<video ') && \preg_match_all('/<video(\s[^>]+)>/', $content, $m)) {
+                foreach ($m[1] as $v) {
+                    if (false !== \strpos($v, ' poster=')) {
+                        $images[] = \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($v, ' poster='), 8) . ' ', ' ', true), '\'"'));
                     }
                 }
             }
