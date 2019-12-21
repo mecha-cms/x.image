@@ -29,7 +29,7 @@ namespace _\lot\x\page\image {
             // `$page->image($width, $height, $quality)`
             $blob->crop($w, $h)->store($cache, $q); // Generate image cache
             $image = \To::URL($cache); // Return the image cache
-        } else {
+        } else if (\is_file($path)) {
             $image = \To::URL($path);
         }
         return $image;
