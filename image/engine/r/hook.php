@@ -15,6 +15,7 @@ namespace _\lot\x\page\image {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
         }
+        // Prevent multiple hook fire
         if (0 === \strpos($image, \To::URL(\LOT) . '/asset/.cache/')) {
             return $image;
         }
@@ -24,7 +25,9 @@ namespace _\lot\x\page\image {
         $x = \Path::X($image) ?? 'jpg';
         $path = \To::path(\URL::long($image));
         $cache = \LOT . \DS . 'asset' . \DS . '.cache' . \DS . \trim(\chunk_split(\md5($w . '.' . $h . '.' . $q . '.' . $image), 2, \DS), \DS) . '.' . $x;
-        if ($image && null !== \State::get('x.image')) {
+        if (\is_file($cache)) {
+            $image = \To::URL($cache); // Return the image cache
+        } else if (null !== \State::get('x.image')) {
             $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($width, $height, $quality)`
             $blob->crop($w, $h)->store($cache, $q); // Generate image cache
