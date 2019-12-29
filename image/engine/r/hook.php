@@ -15,10 +15,6 @@ namespace _\lot\x\page\image {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
         }
-        // Prevent multiple hook fire
-        if (0 === \strpos($image, \To::URL(\LOT) . '/asset/.cache/')) {
-            return $image;
-        }
         $w = \ceil($lot[0]);
         $h = \ceil($lot[1] ?? $w);
         $q = $lot[2] ?? null;
