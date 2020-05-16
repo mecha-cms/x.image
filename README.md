@@ -4,6 +4,10 @@ Image Extension for Mecha
 Release Notes
 -------------
 
+### 2.2.4
+
+ - Fix encoded data image URL being passed to the `imagecreatefromstring()` without decoding it first.
+
 ### 2.2.3
 
  - API has been reduced to only have an ability to resize and crop images. Other abilities such as flipping and rotating an image can be enabled in a separate extension. This extension is now focused to help authors in generating image thumbnails.

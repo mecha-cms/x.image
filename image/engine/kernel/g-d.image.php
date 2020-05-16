@@ -75,7 +75,7 @@ class Image extends \File {
         if (\is_string($path)) {
             // Create image from string
             if (0 === \strpos($path, 'data:image/') && false !== \strpos($path, ';base64,')) {
-                $blob = \imagecreatefromstring(\base64_decode(\explode(',', $path, 2)[1]));
+                $blob = \imagecreatefromstring(\base64_decode(\explode(',', $path = \urldecode($path), 2)[1]));
                 $type = \substr(\explode(';', $path, 2)[0], 5);
             // Create image from remote URL
             } else if (false !== \strpos($path, '://') || 0 === \strpos($path, '/') && 0 !== \strpos($path, \ROOT)) {
