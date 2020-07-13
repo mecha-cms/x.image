@@ -106,8 +106,17 @@ class Image extends \File {
             // Create image from local file
             } else if (\is_file($path)) {
                 $type = \mime_content_type($path);
-                if (0 === \strpos($type, 'image/') && \function_exists($fn = $from . \pathinfo($path, \PATHINFO_EXTENSION))) {
-                    $blob = \call_user_func($fn, $path);
+                if (0 === \strpos($type, 'image/')) {
+                    // Try with image type by default
+                    if (\function_exists($fn = $from . \explode('/', $type, 2)[1])) {
+                        $blob = \call_user_func($fn, $path);
+                    }
+                    // Try with image extension if `$blob` is `false`
+                    if (!$blob && \function_exists($fn = $from . \pathinfo($path, \PATHINFO_EXTENSION))) {
+                        $blob = \call_user_func($fn, $path);
+                    }
+                    // Last try?
+                    if (!$blob) {}
                 }
                 $this->exist = true;
                 $this->path = $path;

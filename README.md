@@ -4,6 +4,10 @@ Image Extension for Mecha
 Release Notes
 -------------
 
+### 2.2.5
+
+ - Small bug fixes.
+
 ### 2.2.4
 
  - Fix encoded data image URL being passed to the `imagecreatefromstring()` without decoding it first.
