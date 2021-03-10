@@ -71,7 +71,7 @@ class Image extends \File {
         $w = self::$state['width'];
         $h = self::$state['height'] ?? $w;
         $this->exist = false;
-        $from = "\\_\\lot\\x\\image\\from\\";
+        $from = "\\x\\image\\from\\";
         if (\is_string($path)) {
             // Create image from string
             if (0 === \strpos($path, 'data:image/') && false !== \strpos($path, ';base64,')) {
@@ -95,7 +95,7 @@ class Image extends \File {
                     $type = $fetch[1];
                 // Fetch URL
                 } else if ($out = \fetch($url)) {
-                    $k = "\\_\\lot\\x\\image\\type\\";
+                    $k = "\\x\\image\\type\\";
                     self::$fetch[$url] = [
                         $blob = \imagecreatefromstring($out),
                         $type = \get_headers($url, 1)['Content-Type'] ?? (\function_exists($fn = $k . \pathinfo($url, \PATHINFO_EXTENSION)) ? \call_user_func($fn) : self::$state['type'])
@@ -167,9 +167,9 @@ class Image extends \File {
     }
 
     public function draw(...$lot) {
-        $to = "\\_\\lot\\x\\image\\to\\";
+        $to = "\\x\\image\\to\\";
         $x = 0 === \strpos($this->k, 'image/') ? \explode('/', $this->k, 2)[1] : self::$state['x'];
-        $k = \function_exists($fn = "\\_\\lot\\x\\image\\type\\" . $x) ? \call_user_func($fn) : self::$state['type'];
+        $k = \function_exists($fn = "\\x\\image\\type\\" . $x) ? \call_user_func($fn) : self::$state['type'];
         if (\function_exists($fn = $to . $x)) {
             \array_unshift($lot, $this->value[0]);
             // `->draw('.\path\to\file.jpg', 60)`
@@ -223,7 +223,7 @@ class Image extends \File {
                 \mkdir($d, 0775, true);
             }
             // Return `$v` on success, `null` on error
-            $to = "\\_\\lot\\x\\image\\to\\";
+            $to = "\\x\\image\\to\\";
             if (\function_exists($fn = $to . $x)) {
                 \array_unshift($lot, $this->value[0]);
                 // `->store('.\path\to\file.jpg', 60)`

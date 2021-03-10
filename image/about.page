@@ -3,7 +3,7 @@ title: Image
 description: Image resizer and cropper.
 author: Taufik Nurrohman
 type: Markdown
-version: 2.2.5
+version: 2.3.0
 
 use:
   '.\lot\x\page': 0
@@ -140,10 +140,10 @@ This extension will also add `image` and `images` property to the current `$page
 
 ~~~ .html.php
 <?php foreach ($pages as $page): ?>
-<article>
-  <?php if ($image = $page->image(72, 72)): ?>
-  <img alt="" src="<?= $image; ?>">
-  <?php endif; ?>
-</article>
+  <article>
+    <?php if ($image = $page->image(72, 72)): ?>
+      <img alt="" src="<?= $image; ?>">
+    <?php endif; ?>
+  </article>
 <?php endforeach; ?>
 ~~~

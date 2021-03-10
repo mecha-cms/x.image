@@ -2,7 +2,7 @@
 
 // Add custom image support here, by file extension
 
-namespace _\lot\x\image\from {
+namespace x\image\from {
     function bmp(...$v) {
         return \imagecreatefrombmp(...$v);
     }
@@ -29,7 +29,7 @@ namespace _\lot\x\image\from {
     }
 }
 
-namespace _\lot\x\image\to {
+namespace x\image\to {
     function bmp(...$v) {
         return \imagebmp(...$v);
     }
@@ -56,7 +56,7 @@ namespace _\lot\x\image\to {
     // }
 }
 
-namespace _\lot\x\image\type {
+namespace x\image\type {
     function bmp() {
         return \image_type_to_mime_type(\IMAGETYPE_BMP);
     }

@@ -1,16 +1,16 @@
 <?php
 
-namespace _\lot\x\page\images {
+namespace x\page\images {
     function crop(array $images, array $lot = []) {
         foreach ($images as &$image) {
-            $image = \_\lot\x\page\image\crop($image, $lot);
+            $image = \x\page\image\crop($image, $lot);
         }
         return $images;
     }
     \Hook::set('page.images', __NAMESPACE__ . "\\crop", 2.2);
 }
 
-namespace _\lot\x\page\image {
+namespace x\page\image {
     function crop($image, array $lot = []) {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
@@ -36,7 +36,7 @@ namespace _\lot\x\page\image {
     \Hook::set('page.image', __NAMESPACE__ . "\\crop", 2.2);
 }
 
-namespace _\lot\x\page {
+namespace x\page {
     function image($image) {
         // Skip if `image` data has been set!
         if ($image) {
