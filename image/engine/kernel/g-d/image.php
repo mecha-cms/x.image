@@ -66,6 +66,39 @@ class Image extends \File {
         return $this;
     }
 
+    protected function _type(string $content) {
+        if (\extension_loaded('fileinfo')) {
+            $info = \finfo_open();
+            return \finfo_buffer($info, $content, \FILEINFO_MIME_TYPE);
+        }
+        // <https://stackoverflow.com/a/9899096>
+        $getBytesFromHexString = static function($data) {
+            $bytes = [];
+            for ($i = 0; $i < \strlen($data); $i += 2) {
+                $bytes[] = \chr(\hexdec(\substr($data, $i, 2)));
+            }
+            return \implode($bytes);
+        };
+        $getImageMimeType = static function($data) {
+            $imageMimeTypes = [
+                '424D' => 'bmp',
+                '474946' => 'gif',
+                'FFD8' => 'jpeg',
+                '89504E470D0A1A0A' => 'png',
+                '4949' => 'tiff',
+                '4D4D' => 'tiff'
+            ];
+            foreach ($imageMimeTypes as $k => $v) {
+                $bytes = $getBytesFromHexString($k);
+                if ($bytes === \substr($data, 0, \strlen($bytes))) {
+                    return 'image/' . $v;
+                }
+            }
+            return null;
+        };
+        return $getImageMimeType($content);
+    }
+
     public function __construct(string $path = null) {
         $blob = $type = null;
         $w = self::$state['width'];
@@ -75,14 +108,14 @@ class Image extends \File {
         if (\is_string($path)) {
             // Create image from string
             if (0 === \strpos($path, 'data:image/') && false !== \strpos($path, ';base64,')) {
-                $blob = \imagecreatefromstring(\base64_decode(\explode(',', $path = \urldecode($path), 2)[1]));
-                $type = \substr(\explode(';', $path, 2)[0], 5);
+                $blob = \imagecreatefromstring($content = \base64_decode(\explode(',', $path = \rawurldecode($path), 2)[1]));
+                $type = $this->_type($content) ?? \substr(explode(';', $path, 2)[0], 5);
             // Create image from remote URL
             } else if (false !== \strpos($path, '://') || 0 === \strpos($path, '/') && 0 !== \strpos($path, \ROOT)) {
                 $path = \To::path($url = \URL::long($path));
                 // Local URL
                 if (0 === \strpos($path, \ROOT . \DS) && \is_file($path)) {
-                    $type = \mime_content_type($path);
+                    $type = \mime_content_type($path) ?: $this->_type(\file_get_contents($path));
                     if (0 === \strpos($type, 'image/') && \function_exists($fn = $from . \explode('/', $type)[1])) {
                         $blob = \call_user_func($fn, $path);
                     }
@@ -98,14 +131,14 @@ class Image extends \File {
                     $k = "\\x\\image\\type\\";
                     self::$fetch[$url] = [
                         $blob = \imagecreatefromstring($out),
-                        $type = \get_headers($url, 1)['Content-Type'] ?? (\function_exists($fn = $k . \pathinfo($url, \PATHINFO_EXTENSION)) ? \call_user_func($fn) : self::$state['type'])
+                        $type = $this->_type($out)
                     ];
                     \imagealphablending($blob, false);
                     \imagesavealpha($blob, true);
                 }
             // Create image from local file
             } else if (\is_file($path)) {
-                $type = \mime_content_type($path);
+                $type = \mime_content_type($path) ?: $this->_type(\file_get_contents($path));
                 if (0 === \strpos($type, 'image/')) {
                     // Try with image type by default
                     if (\function_exists($fn = $from . \explode('/', $type, 2)[1])) {
@@ -143,8 +176,10 @@ class Image extends \File {
             }
         }
         $this->k = $type ?? self::$state['type'];
-        $this->w = \imagesx($blob);
-        $this->h = \imagesy($blob);
+        if ($blob) {
+            $this->w = \imagesx($blob);
+            $this->h = \imagesy($blob);
+        }
         $this->value[0] = $blob;
     }
 

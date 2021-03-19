@@ -4,8 +4,9 @@ Image Extension for Mecha
 Release Notes
 -------------
 
-### main
+### 2.3.0
 
+ - [x] Bug fixes.
  - [x] [@mecha-cms/mecha#96](https://github.com/mecha-cms/mecha/issues/96)
 
 ### 2.2.5
