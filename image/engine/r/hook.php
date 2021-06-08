@@ -19,7 +19,7 @@ namespace x\page\image {
         $h = \ceil($lot[1] ?? $w);
         $q = $lot[2] ?? null;
         $x = \Path::X($image) ?? 'jpg';
-        $path = \To::path(\URL::long($image));
+        $path = \To::path(\URL::long($image, false));
         $cache = \LOT . \DS . 'asset' . \DS . '.cache' . \DS . \trim(\chunk_split(\md5($w . '.' . $h . '.' . $q . '.' . $image), 2, \DS), \DS) . '.' . $x;
         if (\is_file($cache)) {
             $image = \To::URL($cache); // Return the image cache
@@ -40,7 +40,7 @@ namespace x\page {
     function image($image) {
         // Skip if `image` data has been set!
         if ($image) {
-            return \URL::long($image);
+            return \URL::long($image, false);
         }
         // Get URL from `content` data
         if ($content = $this->content) {
@@ -62,7 +62,7 @@ namespace x\page {
         // Skip if `images` data has been set!
         if ($images) {
             foreach ($images as &$image) {
-                $image = \URL::long($image);
+                $image = \URL::long($image, false);
             }
             return $images;
         }
