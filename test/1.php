@@ -46,7 +46,7 @@ $to = dirname($from) . DS . 'out' . DS;
 
 // Generate result…
 if (is_dir($to)) {
-    Hook::set('get', function() use($from, $to) {
+    Hook::set('get', function () use ($from, $to) {
         echo '<figure style="background:#ccc;border:1px solid;padding:1em;margin:0 0 1em;text-align:center;">';
         echo '<img src="' . To::URL($from) . '?v=' . filemtime($from) . '">';
         echo '<figcaption style="margin-top:1em;">' . basename($from) . '</figcaption>';
