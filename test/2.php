@@ -2,4 +2,4 @@
 
 // Generate image as response body
 
-(new Image(__DIR__ . DS . 'test.jpg'))->crop(100)->draw(null, 50);
+(new Image(__DIR__ . D . 'test.jpg'))->crop(100)->blob(null, 50);

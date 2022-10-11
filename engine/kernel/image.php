@@ -2,8 +2,8 @@
 
 class Image extends File {
 
-    protected function _resize(string $blob, int $max_width = null, int $max_height = null, $ratio = true, $crop = false) {
-        $blob = imagecreatefromstring($blob);
+    protected function _resize(int $max_width = null, int $max_height = null, $ratio = true, $crop = false) {
+        $blob = imagecreatefromstring($this->__toString());
         $old_height = imagesy($blob);
         $old_width = imagesx($blob);
         $new_height = $max_height = $max_height ?? $old_height;
@@ -31,7 +31,7 @@ class Image extends File {
                 $height_ratio = $old_height / $new_height;
                 $x = round((($new_width - $max_width) / 2) * $width_ratio);
                 $y = round((($new_height - $max_height) / 2) * $height_ratio);
-                $new_blob = imagecreatetruecolor($max_width, $max_height);
+                $new_blob = imagecreatetruecolor((int) $max_width, (int) $max_height);
             } else {
                 if ($old_width > $old_height) {
                     $ratio = max($old_width, $old_height) / max($max_width, $max_height);
@@ -40,10 +40,10 @@ class Image extends File {
                 }
                 $new_width = $old_width / $ratio;
                 $new_height = $old_height / $ratio;
-                $new_blob = imagecreatetruecolor($new_width, $new_height);
+                $new_blob = imagecreatetruecolor((int) $new_width, (int) $new_height);
             }
         } else {
-            $new_blob = imagecreatetruecolor($max_width, $max_height);
+            $new_blob = imagecreatetruecolor((int) $max_width, (int) $max_height);
         }
         // Draw…
         imagealphablending($new_blob, false);
@@ -128,7 +128,7 @@ class Image extends File {
                 $this->type = mime_content_type($path) ?: $this->_type(file_get_contents($path));
                 if (0 === strpos($this->type, 'image/')) {
                     // Try with image type by default
-                    if (function_exists($fn = $from . explode('/', $type, 2)[1])) {
+                    if (function_exists($fn = $from . explode('/', $this->type, 2)[1])) {
                         $this->blob = call_user_func($fn, $path);
                     }
                     // Try with image extension if `$this->blob` is `false`
@@ -148,15 +148,21 @@ class Image extends File {
             imagesavealpha($this->blob, true);
             imagefill($this->blob, 0, 0, imagecolorallocatealpha($this->blob, 0, 0, 0, 127));
         }
-        if ($this->blob) {
+        if ($blob = $this->blob) {
             $this->h = imagesy($blob);
             $this->w = imagesx($blob);
         }
     }
 
+    public function __toString() {
+        ob_start();
+        imagepng($this->blob);
+        return ob_get_clean();
+    }
+
     public function blob(...$lot) {
         $to = "\\x\\image\\to\\";
-        $x = 0 === strpos($this->type, 'image/') ? explode('/', $this->type, 2)[1];
+        $x = 0 === strpos($this->type, 'image/') ? explode('/', $this->type, 2)[1] : 'png';
         $k = function_exists($fn = "x\\image\\type\\" . $x) ? call_user_func($fn) : 'image/png';
         if (function_exists($fn = $to . $x)) {
             array_unshift($lot, $this->blob);

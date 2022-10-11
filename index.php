@@ -5,3 +5,8 @@ if (!extension_loaded('gd')) {
 }
 
 require __DIR__ . D . 'engine' . D . 'f.php';
+
+if (defined('TEST') && 'x.image' === TEST) {
+    require __DIR__ . D . 'test.php';
+    exit;
+}
