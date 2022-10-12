@@ -4,8 +4,8 @@ class Image extends File {
 
     protected function _resize(int $max_width = null, int $max_height = null, $ratio = true, $crop = false) {
         $blob = imagecreatefromstring($this->blob(null, 100));
-        $old_height = imagesy($blob);
-        $old_width = imagesx($blob);
+        $old_height = $this->h;
+        $old_width = $this->w;
         $new_height = $max_height = $max_height ?? $old_height;
         $new_width = $max_width = $max_width ?? $old_width;
         $x = 0;
@@ -107,7 +107,7 @@ class Image extends File {
                 // Local URL
                 if (0 === strpos($path, PATH) && is_file($path)) {
                     $this->type = mime_content_type($path) ?: $this->_type(file_get_contents($path));
-                    if (0 === strpos($type, 'image/') && function_exists($fn = $from . explode('/', $type)[1])) {
+                    if (0 === strpos($this->type, 'image/') && function_exists($fn = $from . explode('/', $this->type)[1])) {
                         $this->blob = call_user_func($fn, $path);
                     }
                     $this->path = $path;
@@ -144,6 +144,7 @@ class Image extends File {
         // Else, handle invalid value
         if (!$this->blob && !$this->type) {
             $this->blob = imagecreatetruecolor(1, 1);
+            $this->type = 'image/png';
             imagealphablending($this->blob, false);
             imagesavealpha($this->blob, true);
             imagefill($this->blob, 0, 0, imagecolorallocatealpha($this->blob, 0, 0, 0, 127));
