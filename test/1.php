@@ -7,63 +7,56 @@ if (!is_dir($folder)) {
     mkdir($folder, 0775, true);
 }
 
-// Fit
-file_put_contents($folder . D . 'test.fit.200.jpg', (new Image($from))->fit(200, 200));
+// Base64
+file_put_contents($folder . D . 'base64.png', (new Image(file_get_contents(__DIR__ . D . 'test.txt')))->crop(50, 50));
+// Remote
+file_put_contents($folder . D . 'link.png', (new Image('https://avatars1.githubusercontent.com/u/1669261'))->crop(50, 50));
 
-foreach (glob($folder . D . '*.jpg') as $v) {
+// Crop X:Y:W:H
+file_put_contents($folder . D . 'crop.100,50,100,100.jpg', (new Image($from))->crop(100, 50, 100, 100));
+// Crop W:H
+file_put_contents($folder . D . 'crop.72,72.jpg', (new Image($from))->crop(72, 72));
+// Fit
+file_put_contents($folder . D . 'fit.200.jpg', (new Image($from))->fit(200, 200));
+// Resize
+file_put_contents($folder . D . 'resize.200,200.jpg', (new Image($from))->resize(200, 200));
+// Scale
+file_put_contents($folder . D . 'scale.50.jpg', (new Image($from))->scale(50));
+
+echo '<fieldset>';
+echo '<legend>';
+echo 'Input(s)';
+echo '</legend>';
+echo '<figure>';
+echo '<img alt="" src="/' . $sub . short(To::URL($from)) . '">';
+echo '<figcaption>';
+echo $from;
+echo '</figcaption>';
+echo '</figure>';
+echo '<figure>';
+echo '<img alt="" src="' . file_get_contents(__DIR__ . D . 'test.txt') . '">';
+echo '<figcaption>';
+echo substr(file_get_contents(__DIR__ . D . 'test.txt'), 0, 100) . '&hellip;';
+echo '</figcaption>';
+echo '</figure>';
+echo '<figure>';
+echo '<img alt="" src="https://avatars1.githubusercontent.com/u/1669261">';
+echo '<figcaption>';
+echo 'https://avatars1.githubusercontent.com/u/1669261';
+echo '</figcaption>';
+echo '</figure>';
+echo '</fieldset>';
+
+echo '<fieldset>';
+echo '<legend>';
+echo 'Output(s)';
+echo '</legend>';
+foreach (glob($folder . D . '*.{jpg,png}', GLOB_BRACE) as $v) {
     echo '<figure>';
-    echo '<img alt="" src="/' . $sub . short(To::URL($v)) . '">';
+    echo '<img alt="" src="/' . $sub . short(To::URL($v)) . '?v=' . filemtime($v) . '">';
+    echo '<figcaption>';
+    echo basename($v);
+    echo '</figcaption>';
     echo '</figure>';
 }
-
-// // Scale
-// (new Image($from))
-//     ->scale(50)
-//     ->store($to . 'test.scale.50.jpg');
-//
-// // Scale
-// (new Image($from))
-//     ->scale(200)
-//     ->store($to . 'test.scale.200.jpg');
-//
-// // Resize
-// (new Image($from))
-//     ->resize(200, 200)
-//     ->store($to . 'test.resize.200,200.jpg');
-//
-// // Crop
-// (new Image($from))
-//     ->crop(72, 72)
-//     ->store($to . 'test.crop.72,72.jpg');
-//
-// // Crop
-// (new Image($from))
-//     ->crop(130, 50, 100, 100)
-//     ->store($to . 'test.crop.130,50,100,100.jpg');
-//
-// // Base64 image
-// (new Image('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAQlBMVEXmGyLlGyLsGyPzHCUDAADtGyPpGyPxHCTwGyTsHCTwHCTnGyPvHCTyHCTvGyToGyMLCwvrHCPuHCTtHCQyY7QAAAD1jjsFAAAA/UlEQVR42uWW6w6CMAxGuW7iCoMP9/6v6moUGpgUNTESz5+xbieQUjqyy8t8V+mDSn8EpY/kzaDQ5LzvroRIQ1CgJkSEMmBUwHA0BVi4ABSlO506afB8U0HH1w7TLRzPO6iKnxX/ufL5g93wkVHAcz3JkAq2kyy3r7S0co6kFI4nFdQ82rVhOV4jpYDHdq20HMd/KCUtXyWVk5JKchUKsywYU8RwOslx2XmTKksTF54VDJFNFb8lglL8hh4KmZ3fS1G2d8pCVbg9WB8E3m62CwYj+Wo2Kk8j1NZHLggc7eiWyKSSQVcYTOztyRAslTeOpDcOvl8/xF9Ufvbn6gqFZLqLl/MzHAAAAABJRU5ErkJggg=='))
-//     ->crop(30, 30)
-//     ->store($to . 'test-base64.crop.30,30.jpg');
-//
-// // Remote image
-// (new Image('https://avatars1.githubusercontent.com/u/1669261'))
-//     ->crop(30, 30)
-//     ->store($to . 'test-remote.crop.30,30.jpg');
-//
-// // Generate result…
-// if (is_dir($to)) {
-//     Hook::set('get', function () use ($from, $to) {
-//         echo '<figure style="background:#ccc;border:1px solid;padding:1em;margin:0 0 1em;text-align:center;">';
-//         echo '<img src="' . To::URL($from) . '?v=' . filemtime($from) . '">';
-//         echo '<figcaption style="margin-top:1em;">' . basename($from) . '</figcaption>';
-//         echo '</figure>';
-//         foreach (glob($to . D . '*.jpg') as $v) {
-//             echo '<figure style="border:1px solid;padding:1em;margin:0 0 1em;text-align:center;">';
-//             echo '<img src="' . To::URL($v) . '?v=' . filemtime($v) . '">';
-//             echo '<figcaption style="margin-top:1em;">' . basename($v) . '</figcaption>';
-//             echo '</figure>';
-//         }
-//         exit;
-//     });
-// }
+echo '</fieldset>';

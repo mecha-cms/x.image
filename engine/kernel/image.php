@@ -3,7 +3,7 @@
 class Image extends File {
 
     protected function _resize(int $max_width = null, int $max_height = null, $ratio = true, $crop = false) {
-        $blob = imagecreatefromstring($this->__toString());
+        $blob = imagecreatefromstring($this->blob(null, 100));
         $old_height = imagesy($blob);
         $old_width = imagesx($blob);
         $new_height = $max_height = $max_height ?? $old_height;
@@ -154,16 +154,17 @@ class Image extends File {
         }
     }
 
+    public function __destruct() {
+        imagedestroy($this->blob);
+    }
+
     public function __toString() {
-        ob_start();
-        imagepng($this->blob);
-        return ob_get_clean();
+        return $this->blob(null, 100);
     }
 
     public function blob(...$lot) {
         $to = "\\x\\image\\to\\";
         $x = 0 === strpos($this->type, 'image/') ? explode('/', $this->type, 2)[1] : 'png';
-        $k = function_exists($fn = "x\\image\\type\\" . $x) ? call_user_func($fn) : 'image/png';
         if (function_exists($fn = $to . $x)) {
             array_unshift($lot, $this->blob);
             // `->blob('.\path\to\file.jpg', 60)`
@@ -172,14 +173,15 @@ class Image extends File {
                 $lot[2] = b($lot[2], [0, 100]);
             // `->blob('.\path\to\file.png', 60)`
             } else if ('png' === $x && isset($lot[2]) && is_int($lot[2])) {
-                // Normalize range of 0 – 9 to 0 – 100
+                // Normalize range of 0 – 100 to 0 – 9
                 $lot[2] = m(b($lot[2], [0, 100]), [0, 100], [0, 9]);
             }
-            header('content-type: ' . ($lot[3] ?? $k));
+            ob_start();
             call_user_func($fn, ...$lot);
             imagedestroy($this->blob);
+            return ob_get_clean();
         }
-        exit;
+        return "";
     }
 
     public function crop(...$lot) {
@@ -187,7 +189,8 @@ class Image extends File {
         if (count($lot) < 3) {
             $w = (int) ($lot[0] ?? $this->w);
             $h = (int) ($lot[1] ?? $w);
-            return $this->_resize($w, $h, 1, true);
+            $this->blob = $this->_resize($w, $h, 1, true);
+            return $this;
         }
         // `->crop(4, 4, 72, 72)`
         $x = (int) $lot[0];
@@ -203,7 +206,8 @@ class Image extends File {
     public function fit(...$lot) {
         $w = $lot[0] ?? $this->w;
         $h = $lot[1] ?? $this->h;
-        return $this->_resize($w, $h, 1, false);
+        $this->blob = $this->_resize($w, $h, 1, false);
+        return $this;
     }
 
     public function height() {
@@ -213,14 +217,16 @@ class Image extends File {
     public function resize(...$lot) {
         $w = $lot[0] ?? $this->w;
         $h = $lot[1] ?? $this->h;
-        return $this->_resize($w, $h, false, false);
+        $this->blob = $this->_resize($w, $h, false, false);
+        return $this;
     }
 
     public function scale(int $percent) {
         $percent = b($percent, [0]) / 100;
         $w = ceil($percent * $this->w);
         $h = ceil($percent * $this->h);
-        return $this->_resize($w, $h, true, false);
+        $this->blob = $this->_resize($w, $h, true, false);
+        return $this;
     }
 
     public function type() {

@@ -1,10 +1,10 @@
 ---
 title: Image
-description: Image cropper and resizer.
+description: Image manipulation using GD library.
 icon: 'M19,19H5V5H19M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M13.96,12.29L11.21,15.83L9.25,13.47L6.5,17H17.5L13.96,12.29Z'
 author: Taufik Nurrohman
 type: Markdown
-version: 2.3.0
+version: 2.4.0
 
 use:
   '.\lot\x\page': 0
@@ -12,7 +12,7 @@ use:
 
 This extension provides various API to work with BMP, GIF, JPEG, PNG and WEBP images.
 
-### API Usage
+### Usage
 
 #### Create Image
 
@@ -29,18 +29,18 @@ $blob = new Image('http://127.0.0.1/path/to/image.png');
 $blob = new Image('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAy…');
 ~~~
 
-#### Get Image Dimension
+#### Read Image Dimension
 
-Get current image width and height:
+Read current image width and height:
 
 ~~~ .php
 $width = $blob->width;
 $height = $blob->height;
 ~~~
 
-#### Get Image Type
+#### Read Image Type
 
-Get current image MIME type:
+Read current image MIME type:
 
 ~~~ .php
 $type = $blob->type;
@@ -68,7 +68,7 @@ $blob->scale(200); // 200% of current image dimension
 
 #### Fit Image
 
-Resize image and make sure that the width and height will not overflow the maximum width and height:
+Resize image and make sure that the new width and height will not overflow the maximum width and height:
 
 ~~~ .php
 $max_width = 100;
@@ -107,37 +107,43 @@ $blob->crop($left, $top, $width, $height);
 Store the modified image blob to a file:
 
 ~~~ .php
-$blob->store('.\path\to\image-1.png');
-$blob->store('.\path\to\image-1.png', 50); // Set image quality to 50%
+// Method 1
+file_put_contents('.\path\to\image.png', (string) $blob);
+file_put_contents('.\path\to\image.png', $blob->blob(null, 50)); // Set image quality to 50%
+
+// Method 2
+$blob->blob('.\path\to\image.png');
+$blob->blob('.\path\to\image.png', 50); // Set image quality to 50%
 ~~~
 
-#### Draw Image
+#### Render Image
 
-Show image to the browser window as a file:
+Render image to the browser window as a file:
 
 ~~~ .php
-$blob->draw();
+status(200, ['content-type' => $blob->type]);
+echo $blob;
 ~~~
 
 ~~~ .php
-$blob->draw(null, 50); // Set image quality to 50%
+status(200, ['content-type' => $blob->type]);
+echo $blob->blob(null, 50); // Set image quality to 50%
 ~~~
 
-Draw and store to a file:
+Load image from file cache if available:
 
 ~~~ .php
-$blob->draw('.\path\to\image-1.png', 50);
+status(200, ['content-type' => $blob->type]);
+if (is_file($file = '.\path\to\image.png')) {
+    echo file_get_contents($file);
+} else {
+    echo $blob->blob($file);
+}
 ~~~
 
-Draw as JPEG image:
+### Page Image Data
 
-~~~ .php
-$blob->draw(null, 50, 'image/jpeg');
-~~~
-
-### Image API with Page Extension
-
-This extension will also add `image` and `images` property to the current `$page` object. The `image` property will contain the first image URL found in the current page content, and `images` property will contain list of images URL found in the current page content. This extension will skip the parsing process if you set the `image` and `images` property values explicitly in the page file header:
+This extension also add `image` and `images` property to the current `$page` object. The `image` property will contain the first image URL found in the current page content, and `images` property will contain list of images URL found in the current page content. This extension will skip the parsing process if you have been set the `image` and `images` property values explicitly in the page header:
 
 ~~~ .html.php
 <?php foreach ($pages as $page): ?>

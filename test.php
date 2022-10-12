@@ -7,7 +7,7 @@ if (isset($_GET['test']) && is_file($test = __DIR__ . D . 'test' . D . basename(
     echo '<ul>';
     foreach (glob(__DIR__ . D . 'test' . D . '*.php') as $v) {
         echo '<li>';
-        echo '<a href="?test=' . basename($v, '.php') . '">';
+        echo '<a href="?test=' . basename($v, '.php') . '" target="_blank">';
         echo strtr($v, [PATH => '.']);
         echo '</a>';
         echo '</li>';
