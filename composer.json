@@ -1,5 +1,5 @@
 {
-  "description": "Image cropper and resizer.",
+  "description": "Image manipulation using GD library.",
   "license": "GPL-3.0-or-later",
   "name": "mecha-cms/x.image",
   "require": {
