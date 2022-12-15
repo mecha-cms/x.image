@@ -14,3 +14,5 @@ if (isset($_GET['test']) && is_file($test = __DIR__ . D . 'test' . D . basename(
     }
     echo '</ul>';
 }
+
+exit;
