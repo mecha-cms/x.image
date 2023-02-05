@@ -15,19 +15,19 @@ namespace x\page\image {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
         }
-        $w = \ceil($lot[0]);
-        $h = \ceil($lot[1] ?? $w);
-        $q = $lot[2] ?? null;
-        $x = \Path::X($image) ?? 'jpg';
-        $path = \To::path(\URL::long($image, false));
-        $cache = \LOT . \DS . 'asset' . \DS . '.cache' . \DS . \trim(\chunk_split(\md5($w . '.' . $h . '.' . $q . '.' . $image), 2, \DS), \DS) . '.' . $x;
-        if (\is_file($cache)) {
-            $image = \To::URL($cache); // Return the image cache
+        $width = \ceil($lot[0]);
+        $height = \ceil($lot[1] ?? $width);
+        $quality = $lot[2] ?? 100;
+        $x = \pathinfo($image, \PATHINFO_EXTENSION) ?: 'jpg';
+        $path = \To::path(\long($image));
+        $store = \LOT . \D . 'image' . \D . \md5($width . '.' . $height . '.' . $quality . '.' . $image) . '.' . $x;
+        if (\is_file($store)) {
+            $image = \To::URL($store); // Return the image cache
         } else if (null !== \State::get('x.image')) {
             $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($width, $height, $quality)`
-            $blob->crop($w, $h)->store($cache, $q); // Generate image cache
-            $image = \To::URL($cache); // Return the image cache
+            $blob->crop($width, $height)->blob($store, $quality); // Generate image cache
+            $image = \To::URL($store); // Return the image cache
         } else if (\is_file($path)) {
             $image = \To::URL($path);
         }
@@ -37,10 +37,16 @@ namespace x\page\image {
 }
 
 namespace x\page {
+    if (!\is_dir($folder = \LOT . \D . 'image')) {
+        \mkdir($folder, 0775, true);
+    }
+    if (!\is_file($file = $folder . \D . '.htaccess')) {
+        \file_put_contents($file, 'Allow from all');
+    }
     function image($image) {
         // Skip if `image` data has been set!
         if ($image) {
-            return \URL::long($image, false);
+            return \long($image);
         }
         // Get URL from `content` data
         if ($content = $this->content) {
@@ -62,8 +68,9 @@ namespace x\page {
         // Skip if `images` data has been set!
         if ($images) {
             foreach ($images as &$image) {
-                $image = \URL::long($image, false);
+                $image = \long($image);
             }
+            unset($image);
             return $images;
         }
         $images = [];

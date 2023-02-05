@@ -143,7 +143,10 @@ if (is_file($file = '.\path\to\image.png')) {
 
 ### Page Image Data
 
-This extension also add `image` and `images` property to the current `$page` object. The `image` property will contain the first image URL found in the current page content, and `images` property will contain list of images URL found in the current page content. This extension will skip the parsing process if you have been set the `image` and `images` property values explicitly in the page header:
+This extension also add `image` and `images` property to the current `$page` object. The `image` property will contain
+the first image URL found in the current page content, and `images` property will contain list of images URL found in
+the current page content. This extension will skip the parsing process if you have been set the `image` and `images`
+property values explicitly in the page header:
 
 ~~~ .html.php
 <?php foreach ($pages as $page): ?>

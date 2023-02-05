@@ -168,6 +168,9 @@ class Image extends File {
         $x = 0 === strpos($this->type, 'image/') ? explode('/', $this->type, 2)[1] : 'png';
         if (function_exists($fn = $to . $x)) {
             array_unshift($lot, $this->blob);
+            if (is_string($lot[1]) && 0 === strpos($lot[1], PATH . D) && !is_dir($folder = dirname($lot[1]))) {
+                mkdir($folder, 0775, true);
+            }
             // `->blob('.\path\to\file.jpg', 60)`
             if ('jpeg' === $x && isset($lot[2]) && is_int($lot[2])) {
                 // Normalize range to 0 – 100
