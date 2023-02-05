@@ -17,7 +17,7 @@ namespace x\page\image {
         }
         $width = \ceil($lot[0]);
         $height = \ceil($lot[1] ?? $width);
-        $quality = $lot[2] ?? 100;
+        $quality = $lot[2] ?? -1;
         $x = \pathinfo($image, \PATHINFO_EXTENSION) ?: 'jpg';
         $path = \To::path(\long($image));
         $store = \LOT . \D . 'image' . \D . \md5($width . '.' . $height . '.' . $quality . '.' . $image) . '.' . $x;
