@@ -20,7 +20,7 @@ namespace x\page\image {
         $quality = $lot[2] ?? -1;
         $x = \pathinfo($image, \PATHINFO_EXTENSION) ?: 'jpg';
         $path = \To::path(\long($image));
-        $store = \LOT . \D . 'image' . \D . \md5($width . '.' . $height . '.' . $quality . '.' . $image) . '.' . $x;
+        $store = \LOT . \D . 'image' . \D . 't' . \D . $width . ($height !== $width ? \D . $height : "") . \D . \dechex(\crc32($image . $quality)) . '.' . $x;
         if (\is_file($store)) {
             $image = \To::URL($store); // Return the image cache
         } else if (null !== \State::get('x.image')) {
