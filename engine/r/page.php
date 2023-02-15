@@ -1,6 +1,6 @@
 <?php
 
-namespace x\page\images {
+namespace x\image\page\images {
     function crop(array $images, array $lot = []) {
         foreach ($images as &$image) {
             $image = \x\page\image\crop($image, $lot);
@@ -10,7 +10,7 @@ namespace x\page\images {
     \Hook::set('page.images', __NAMESPACE__ . "\\crop", 2.2);
 }
 
-namespace x\page\image {
+namespace x\image\page\image {
     function crop($image, array $lot = []) {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
@@ -22,27 +22,26 @@ namespace x\page\image {
         $path = \To::path(\long($image));
         $store = \LOT . \D . 'image' . \D . 't' . \D . $width . ($height !== $width ? \D . $height : "") . \D . \dechex(\crc32($image . $quality)) . '.' . $x;
         if (\is_file($store)) {
-            $image = \To::URL($store); // Return the image cache
+            $image = \To::URL($store); // Return the image cache URL
         } else if (null !== \State::get('x.image')) {
             $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($width, $height, $quality)`
             $blob->crop($width, $height)->blob($store, $quality); // Generate image cache
-            $image = \To::URL($store); // Return the image cache
+            $image = \To::URL($store); // Return the image cache URL
         } else if (\is_file($path)) {
             $image = \To::URL($path);
+        }
+        // Convert direct image URL from folder `.\lot\image` to its proxy image URL
+        \extract($GLOBALS, \EXTR_SKIP);
+        if ($image && 0 === \strpos($image, $url . '/lot/image/')) {
+            $image = \substr_replace($image, $url . '/' . \trim($state->x->image->route ?? 'image', '/') . '/', 0, \strlen($url . '/lot/image/'));
         }
         return $image;
     }
     \Hook::set('page.image', __NAMESPACE__ . "\\crop", 2.2);
 }
 
-namespace x\page {
-    if (!\is_dir($folder = \LOT . \D . 'image')) {
-        \mkdir($folder, 0775, true);
-    }
-    if (!\is_file($file = $folder . \D . '.htaccess')) {
-        \file_put_contents($file, 'Allow from all');
-    }
+namespace x\image\page {
     function image($image) {
         // Skip if `image` data has been set!
         if ($image) {
