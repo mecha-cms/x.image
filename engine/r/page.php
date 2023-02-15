@@ -3,7 +3,7 @@
 namespace x\image\page\images {
     function crop(array $images, array $lot = []) {
         foreach ($images as &$image) {
-            $image = \x\page\image\crop($image, $lot);
+            $image = \x\image\page\image\crop($image, $lot);
         }
         return $images;
     }
