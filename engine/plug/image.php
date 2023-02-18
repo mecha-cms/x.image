@@ -82,9 +82,3 @@ namespace x\image\type {
     //     return \image_type_to_mime_type(\IMAGETYPE_XPM);
     // }
 }
-
-namespace {
-    function image(...$lot) {
-        return new Image(...$lot);
-    }
-}
