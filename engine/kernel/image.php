@@ -156,7 +156,7 @@ class Image extends File {
     }
 
     public function __destruct() {
-        imagedestroy($this->blob);
+        $this->blob && imagedestroy($this->blob);
     }
 
     public function __toString() {

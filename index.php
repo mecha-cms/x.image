@@ -4,6 +4,7 @@ namespace {
     if (!\extension_loaded('gd')) {
         \abort(\i('Missing %s extension.', ['PHP <a href="https://www.php.net/manual/en/book.image.php" rel="nofollow" target="_blank">gd</a>']));
     }
+    require __DIR__ . \D . 'engine' . \D . 'f.php';
     function image(...$lot) {
         return \Image::from(...$lot);
     }
@@ -32,7 +33,7 @@ namespace x\image {
     if (0 === \strpos($path, $route . '/') && \is_file($file = \LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
         \Hook::set('route.image', __NAMESPACE__ . "\\route", 100);
         \Hook::set('route', function ($content, $path, $query, $hash) use ($file, $route) {
-            if (false !== \strpos(',apng,avif,bmp,gif,jpeg,jpg,png,webp,xbm,xpm,', ',' . \pathinfo($file, \PATHINFO_EXTENSION) . ',')) {
+            if (false !== \strpos(',apng,avif,bmp,gif,jpeg,jpg,png,svg,webp,xbm,xpm,', ',' . \pathinfo($file, \PATHINFO_EXTENSION) . ',')) {
                 return \Hook::fire('route.image', [$content, \substr($path, \strlen($route) + 1), $query, $hash]);
             }
             return $content;
@@ -109,7 +110,7 @@ namespace x\image\page\image {
         $store = \LOT . \D . 'image' . \D . 't' . \D . $width . ($height !== $width ? \D . $height : "") . \D . \dechex(\crc32($image . $quality)) . '.' . $x;
         if (\is_file($store)) {
             $image = \To::URL($store); // Return the image cache URL
-        } else if (null !== \State::get('x.image')) {
+        } else if (\function_exists("\\x\\image\\from\\" . $x)) {
             $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($width, $height, $quality)`
             $blob->crop($width, $height)->blob($store, $quality); // Generate image cache
