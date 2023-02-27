@@ -104,16 +104,16 @@ class Image extends File {
             // Create image from remote URL
             } else if (0 !== strpos($path, PATH) && (false !== strpos($path, '://') || 0 === strpos($path, '/'))) {
                 $path = To::path($link = long($path));
+                // Load from cache
+                if (isset(self::$cache[$link])) {
+                    [$this->blob, $this->type] = self::$cache[$link];
                 // Local URL
-                if (0 === strpos($path, PATH) && is_file($path)) {
+                } else if (0 === strpos($path, PATH) && is_file($path)) {
                     $this->type = mime_content_type($path) ?: $this->_type(file_get_contents($path));
                     if (0 === strpos($this->type, 'image/') && function_exists($fn = $from . explode('/', $this->type)[1])) {
                         $this->blob = call_user_func($fn, $path);
                     }
                     $this->path = $path;
-                // Load from cache
-                } else if (isset(self::$cache[$link])) {
-                    [$this->blob, $this->type] = self::$cache[$link];
                 // Fetch URL
                 } else if ($blob = fetch($link)) {
                     self::$cache[$link] = [
@@ -156,7 +156,7 @@ class Image extends File {
     }
 
     public function __destruct() {
-        $this->blob && imagedestroy($this->blob);
+        $this->blob && $this->blob instanceof GdImage && imagedestroy($this->blob);
     }
 
     public function __toString() {

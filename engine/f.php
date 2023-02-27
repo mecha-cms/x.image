@@ -3,6 +3,9 @@
 // Add custom image support here, by file extension
 
 namespace x\image\from {
+    function avif(...$v) {
+        return \imagecreatefromavif(...$v); // PHP >= 8.0
+    }
     function bmp(...$v) {
         return \imagecreatefrombmp(...$v);
     }
@@ -18,6 +21,9 @@ namespace x\image\from {
     function png(...$v) {
         return \imagecreatefrompng(...$v);
     }
+    function wbmp(...$v) {
+        return \imagecreatefromwbmp(...$v);
+    }
     function webp(...$v) {
         return \imagecreatefromwebp(...$v);
     }
@@ -30,6 +36,9 @@ namespace x\image\from {
 }
 
 namespace x\image\to {
+    function avif(...$v) {
+        return \imageavif(...$v); // PHP >= 8.0
+    }
     function bmp(...$v) {
         return \imagebmp(...$v);
     }
@@ -45,6 +54,9 @@ namespace x\image\to {
     function png(...$v) {
         return \imagepng(...$v);
     }
+    function wbmp(...$v) {
+        return \imagewbmp(...$v);
+    }
     function webp(...$v) {
         return \imagewebp(...$v);
     }
@@ -57,28 +69,35 @@ namespace x\image\to {
 }
 
 namespace x\image\type {
+    function avif() {
+        return \image_type_to_mime_type(\IMAGETYPE_AVIF); // PHP >= 8
+    }
     function bmp() {
         return \image_type_to_mime_type(\IMAGETYPE_BMP);
     }
-    function gif(...$v) {
+    function gif() {
         return \image_type_to_mime_type(\IMAGETYPE_GIF);
     }
-    function jpeg(...$v) {
+    function jpeg() {
         return \image_type_to_mime_type(\IMAGETYPE_JPEG);
     }
-    function jpg(...$v) {
+    function jpg() {
         return \image_type_to_mime_type(\IMAGETYPE_JPEG);
     }
-    function png(...$v) {
+    function png() {
         return \image_type_to_mime_type(\IMAGETYPE_PNG);
     }
-    function webp(...$v) {
+    function tiff() {
+        // return \image_type_to_mime_type(\IMAGETYPE_TIFF_MM);
+        return \image_type_to_mime_type(\IMAGETYPE_TIFF_II);
+    }
+    function webp() {
         return \image_type_to_mime_type(\IMAGETYPE_WEBP);
     }
-    function xbm(...$v) {
+    function xbm() {
         return \image_type_to_mime_type(\IMAGETYPE_XBM);
     }
-    // function xpm(...$v) {
+    // function xpm() {
     //     return \image_type_to_mime_type(\IMAGETYPE_XPM);
     // }
 }
