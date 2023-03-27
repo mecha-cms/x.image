@@ -4,5 +4,8 @@
   "name": "mecha-cms/x.image",
   "require": {
     "ext-gd": "*"
+  },
+  "suggest": {
+    "mecha-cms/x.page": "If this extension is available and active, the dynamic thumbnail generator feature via the `Page::image()` method will be available automatically."
   }
 }
