@@ -139,6 +139,38 @@ if (is_file($file = '.\path\to\image.png')) {
 }
 ~~~
 
+### Image Folder
+
+A special folder to store image files will be created automatically by this extension located at `.\lot\image`. You can
+store important image files exclusively there. These files will not be directly accessible using the original address as
+the files in the `.\lot\asset` folder. You need to use the proxy link feature to be able to access these files. A
+built-in image proxy link feature is available and it allows public access by default:
+
+~~~ .txt
+http://127.0.0.1/image/autumn.jpg → http://127.0.0.1/lot/image/autumn.jpg
+http://127.0.0.1/image/a/b/c/autumn.jpg → http://127.0.0.1/lot/image/a/b/c/autumn.jpg
+~~~
+
+You can add hooks to the route to restrict access to certain image files based on certain conditions:
+
+~~~ .php
+Hook::set('route.image', function ($content, $path) {
+    // Disable public image access stored in `.\lot\image\me` folder
+    if (str_starts_with($path, '/me/')) {
+        status(403);
+        type('text/plain');
+        return 'Access denied.';
+    }
+    // Disable public image access stored in `.\lot\image\us` folder unless the user is logged-in
+    if (str_starts_with($path, '/us/') && !Is::user()) {
+        status(403);
+        type('text/plain');
+        return 'Access denied.';
+    }
+    return $content;
+});
+~~~
+
 ### Page Image Data
 
 This extension also add `image` and `images` property to the current `$page` object. The `image` property will contain

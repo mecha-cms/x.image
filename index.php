@@ -18,6 +18,9 @@ namespace {
 
 namespace x\image {
     function route($content, $path) {
+        if (null !== $content) {
+            return $content;
+        }
         $age = 60 * 60 * 24 * 365; // Cache output for 1 year
         \status(200, [
             'cache-control' => 'max-age=' . $age . ', private',
@@ -33,6 +36,9 @@ namespace x\image {
     if (0 === \strpos($path, $route . '/') && \is_file($file = \LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
         \Hook::set('route.image', __NAMESPACE__ . "\\route", 100);
         \Hook::set('route', function ($content, $path, $query, $hash) use ($file, $route) {
+            if (null !== $content) {
+                return $content;
+            }
             if (false !== \strpos(',apng,avif,bmp,gif,jpeg,jpg,png,svg,webp,xbm,xpm,', ',' . \pathinfo($file, \PATHINFO_EXTENSION) . ',')) {
                 return \Hook::fire('route.image', [$content, \substr($path, \strlen($route) + 1), $query, $hash]);
             }
