@@ -119,19 +119,25 @@ $blob->blob('.\path\to\image.png', 50); // Set image quality to 50%
 Render image to the browser window as a file:
 
 ~~~ .php
-status(200, ['content-type' => $blob->type]);
+status(200);
+type($blob->type);
+
 echo $blob;
 ~~~
 
 ~~~ .php
-status(200, ['content-type' => $blob->type]);
+status(200);
+type($blob->type);
+
 echo $blob->blob(null, 50); // Set image quality to 50%
 ~~~
 
 Load image from file cache if available:
 
 ~~~ .php
-status(200, ['content-type' => $blob->type]);
+status(200);
+type($blob->type);
+
 if (is_file($file = '.\path\to\image.png')) {
     echo file_get_contents($file);
 } else {
