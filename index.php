@@ -11,44 +11,10 @@ namespace {
     if (!\is_dir($folder = \LOT . \D . 'image')) {
         \mkdir($folder, 0775, true);
     }
-    if (\defined('TEST') && 'x.image' === \TEST && \is_file($test = __DIR__ . \D . 'test.php')) {
-        require $test;
-    }
 }
 
 namespace x\image {
-    function route($content, $path) {
-        if (null !== $content) {
-            return $content;
-        }
-        $age = 60 * 60 * 24 * 365; // Cache output for 1 year
-        \status(200, [
-            'cache-control' => 'max-age=' . $age . ', private',
-            'expires' => \gmdate('D, d M Y H:i:s', $age + $_SERVER['REQUEST_TIME']) . ' GMT',
-            'pragma' => 'private'
-        ]);
-        \type(\mime_content_type($file = \LOT . \D . 'image' . \D . \trim($path ?? "", '/')));
-        echo \file_get_contents($file);
-        exit;
-    }
-    $path = \trim($url->path ?? "", '/');
-    $route = \trim($state->x->image->route ?? 'image', '/');
-    if (0 === \strpos($path, $route . '/') && \is_file($file = \LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
-        \Hook::set('route.image', __NAMESPACE__ . "\\route", 100);
-        \Hook::set('route', function ($content, $path, $query, $hash) use ($file, $route) {
-            if (null !== $content) {
-                return $content;
-            }
-            if (false !== \strpos(',apng,avif,bmp,gif,jpeg,jpg,png,svg,webp,xbm,xpm,', ',' . \pathinfo($file, \PATHINFO_EXTENSION) . ',')) {
-                return \Hook::fire('route.image', [$content, \substr($path, \strlen($route) + 1), $query, $hash]);
-            }
-            return $content;
-        }, 0);
-    }
-}
-
-namespace x\image\page {
-    function image($image) {
+    function page__image($image) {
         // Skip if `image` data has been set!
         if ($image) {
             return \long($image);
@@ -69,7 +35,7 @@ namespace x\image\page {
         }
         return null;
     }
-    function images($images) {
+    function page__images($images) {
         // Skip if `images` data has been set!
         if ($images) {
             foreach ($images as &$image) {
@@ -99,11 +65,44 @@ namespace x\image\page {
         }
         return $images;
     }
-    \Hook::set('page.image', __NAMESPACE__ . "\\image", 2.1);
-    \Hook::set('page.images', __NAMESPACE__ . "\\images", 2.1);
+    function route($content, $path, $query, $hash) {
+        if (null !== $content) {
+            return $content;
+        }
+        $route = \trim($state->x->image->route ?? 'image', '/');
+        if (!\is_file($file = \LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
+            return $content;
+        }
+        if (false !== \strpos(',apng,avif,bmp,gif,jpeg,jpg,png,svg,webp,xbm,xpm,', ',' . \pathinfo($file, \PATHINFO_EXTENSION) . ',')) {
+            return \Hook::fire('route.image', [$content, \substr($path, \strlen($route) + 1), $query, $hash]);
+        }
+        return $content;
+    }
+    function route__image($content, $path) {
+        if (null !== $content) {
+            return $content;
+        }
+        $age = 60 * 60 * 24 * 365; // Cache output for 1 year
+        \status(200, [
+            'cache-control' => 'max-age=' . $age . ', private',
+            'expires' => \gmdate('D, d M Y H:i:s', $age + $_SERVER['REQUEST_TIME']) . ' GMT',
+            'pragma' => 'private'
+        ]);
+        \type(\mime_content_type($file = \LOT . \D . 'image' . \D . \trim($path ?? "", '/')));
+        echo \file_get_contents($file);
+        exit;
+    }
+    $path = \trim($url->path ?? $state->route ?? 'index', '/');
+    $route = \trim($state->x->image->route ?? 'image', '/');
+    if (0 === \strpos($path, $route . '/') && \is_file(\LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
+        \Hook::set('route', __NAMESPACE__ . "\\route", 0);
+        \Hook::set('route.image', __NAMESPACE__ . "\\route__image", 100);
+    }
+    \Hook::set('page.image', __NAMESPACE__ . "\\page__image", 2.1);
+    \Hook::set('page.images', __NAMESPACE__ . "\\page__images", 2.1);
 }
 
-namespace x\image\page\image {
+namespace x\image\page__image {
     function crop($image, array $lot = []) {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
@@ -134,7 +133,7 @@ namespace x\image\page\image {
     \Hook::set('page.image', __NAMESPACE__ . "\\crop", 2.2);
 }
 
-namespace x\image\page\images {
+namespace x\image\page__images {
     function crop(array $images, array $lot = []) {
         foreach ($images as &$image) {
             $image = \x\image\page\image\crop($image, $lot);
@@ -142,4 +141,7 @@ namespace x\image\page\images {
         return $images;
     }
     \Hook::set('page.images', __NAMESPACE__ . "\\crop", 2.2);
+    if (\defined('TEST') && 'x.image' === \TEST && \is_file($test = __DIR__ . \D . 'test.php')) {
+        require $test;
+    }
 }
