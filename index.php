@@ -63,7 +63,7 @@ namespace x\image {
                 }
             }
         }
-        return $images;
+        return \array_unique($images);
     }
     function route($content, $path, $query, $hash) {
         if (null !== $content) {
@@ -136,7 +136,7 @@ namespace x\image\page__image {
 namespace x\image\page__images {
     function crop(array $images, array $lot = []) {
         foreach ($images as &$image) {
-            $image = \x\image\page\image\crop($image, $lot);
+            $image = \x\image\page__image\crop($image, $lot);
         }
         return $images;
     }
