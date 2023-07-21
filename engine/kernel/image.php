@@ -99,8 +99,8 @@ class Image extends File {
         if (is_string($path)) {
             // Create image from Base64 URL
             if (0 === strpos($path, 'data:image/') && false !== strpos($path, ';base64,')) {
-                $this->blob = imagecreatefromstring($blob = base64_decode(explode(',', $path = rawurldecode($path), 2)[1]));
-                $this->type = $this->_type($blob) ?? substr(strtok($path, ';'), 5);
+                $this->blob = imagecreatefromstring($blob = base64_decode(substr(strstr($path = rawurldecode($path), ','), 1)));
+                $this->type = $this->_type($blob) ?? substr(strstr($path, ';', true), 5);
             // Create image from remote URL
             } else if (0 !== strpos($path, PATH) && (false !== strpos($path, '://') || 0 === strpos($path, '/'))) {
                 $path = To::path($link = long($path));
@@ -128,7 +128,7 @@ class Image extends File {
                 $this->type = mime_content_type($path) ?: $this->_type(file_get_contents($path));
                 if (0 === strpos($this->type, 'image/')) {
                     // Try with image type by default
-                    if (function_exists($fn = $from . explode('/', $this->type, 2)[1])) {
+                    if (function_exists($fn = $from . substr(strstr($this->type, '/'), 1))) {
                         $this->blob = call_user_func($fn, $path);
                     }
                     // Try with image extension if `$this->blob` is `false`
