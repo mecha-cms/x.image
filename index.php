@@ -124,7 +124,7 @@ namespace x\image\page__image {
             $image = \To::URL($path);
         }
         // Convert direct image URL from folder `.\lot\image` to its proxy image URL
-        \extract($GLOBALS, \EXTR_SKIP);
+        \extract(\lot(), \EXTR_SKIP);
         if ($image && 0 === \strpos($image, $url . '/lot/image/')) {
             $image = \substr_replace($image, $url . '/' . \trim($state->x->image->route ?? 'image', '/') . '/', 0, \strlen($url . '/lot/image/'));
         }

@@ -2,7 +2,7 @@
 
 class Image extends File {
 
-    protected function _resize(int $max_width = null, int $max_height = null, $ratio = true, $crop = false) {
+    protected function _resize(?int $max_width = null, ?int $max_height = null, $ratio = true, $crop = false) {
         $blob = imagecreatefromstring($this->blob(null, 100));
         $old_height = $this->h;
         $old_width = $this->w;
@@ -94,7 +94,7 @@ class Image extends File {
     public $path;
     public $type;
 
-    public function __construct(string $path = null) {
+    public function __construct(?string $path = null) {
         $from = "x\\image\\from\\";
         if (is_string($path)) {
             // Create image from Base64 URL
