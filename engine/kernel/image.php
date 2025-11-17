@@ -110,8 +110,8 @@ class Image extends File {
                 // Local URL
                 } else if (0 === strpos($path, PATH) && is_file($path)) {
                     $this->type = mime_content_type($path) ?: $this->_type(file_get_contents($path));
-                    if (0 === strpos($this->type, 'image/') && function_exists($fn = $from . explode('/', $this->type)[1])) {
-                        $this->blob = call_user_func($fn, $path);
+                    if (0 === strpos($this->type, 'image/') && function_exists($f = $from . explode('/', $this->type)[1])) {
+                        $this->blob = call_user_func($f, $path);
                     }
                     $this->path = $path;
                 // Fetch URL
@@ -128,12 +128,12 @@ class Image extends File {
                 $this->type = mime_content_type($path) ?: $this->_type(file_get_contents($path));
                 if (0 === strpos($this->type, 'image/')) {
                     // Try with image type by default
-                    if (function_exists($fn = $from . substr(strstr($this->type, '/'), 1))) {
-                        $this->blob = call_user_func($fn, $path);
+                    if (function_exists($f = $from . substr(strstr($this->type, '/'), 1))) {
+                        $this->blob = call_user_func($f, $path);
                     }
                     // Try with image extension if `$this->blob` is `false`
-                    if (!$this->blob && function_exists($fn = $from . pathinfo($path, PATHINFO_EXTENSION))) {
-                        $this->blob = call_user_func($fn, $path);
+                    if (!$this->blob && function_exists($f = $from . pathinfo($path, PATHINFO_EXTENSION))) {
+                        $this->blob = call_user_func($f, $path);
                     }
                     // Last try?
                     if (!$this->blob) {}
@@ -166,7 +166,7 @@ class Image extends File {
     public function blob(...$lot) {
         $to = "\\x\\image\\to\\";
         $x = 0 === strpos($this->type, 'image/') ? explode('/', $this->type, 2)[1] : 'png';
-        if (function_exists($fn = $to . $x)) {
+        if (function_exists($f = $to . $x)) {
             array_unshift($lot, $this->blob);
             if (is_string($lot[1]) && 0 === strpos($lot[1], PATH . D) && !is_dir($folder = dirname($lot[1]))) {
                 mkdir($folder, 0775, true);
@@ -181,7 +181,7 @@ class Image extends File {
                 $lot[2] = m(b($lot[2], [0, 100]), [0, 100], [0, 9]);
             }
             ob_start();
-            call_user_func($fn, ...$lot);
+            call_user_func($f, ...$lot);
             imagedestroy($this->blob);
             return ob_get_clean();
         }

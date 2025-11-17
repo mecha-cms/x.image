@@ -167,8 +167,9 @@ Hook::set('route.image', function ($content, $path) {
         type('text/plain');
         return 'Access denied.';
     }
+    extract(lot(), EXTR_SKIP);
     // Disable public image access stored in `.\lot\image\us` folder unless the user is logged-in
-    if (str_starts_with($path, '/us/') && !Is::user()) {
+    if (str_starts_with($path, '/us/') && !(isset($user) && $user->exist)) {
         status(403);
         type('text/plain');
         return 'Access denied.';
