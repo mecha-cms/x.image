@@ -4,7 +4,6 @@ namespace {
     if (!\extension_loaded('gd')) {
         \abort(\i('Missing %s extension.', ['PHP <a href="https://www.php.net/manual/en/book.image.php" rel="nofollow" target="_blank">gd</a>']));
     }
-    require __DIR__ . \D . 'engine' . \D . 'f.php';
     function image(...$lot) {
         return \Image::from(...$lot);
     }
@@ -14,26 +13,43 @@ namespace {
 }
 
 namespace x\image {
+    function link($content) {
+        // Get URL from `<img>` tag
+        if (false !== ($a = \strpos($content, '<img')) && \strspn($content, " \n\r\t", $a + 4)) {
+            if (false !== ($b = \strpos($content, '>', $a))) {
+                $v = ' ' . \strtr(\trim(\substr($content, $a += 4, $b - $a)), ["\n" => ' ', "\r" => ' ', "\t" => ' ']);
+                if (false !== ($c = \strpos($v, ' src='))) {
+                    return \htmlspecialchars_decode(\trim(\strstr(\substr($v, $c + 5) . ' ', ' ', true), '\'"'));
+                }
+            }
+        // Get URL from `<video>` tag
+        } else if (false !== ($a = \strpos($content, '<video')) && \strspn($content, " \n\r\t", $a + 6)) {
+            if (false !== ($b = \strpos($content, '>', $a))) {
+                $v = ' ' . \strtr(\trim(\substr($content, $a += 6, $b - $a)), ["\n" => ' ', "\r" => ' ', "\t" => ' ']);
+                if (false !== ($c = \strpos($v, ' poster='))) {
+                    return \htmlspecialchars_decode(\trim(\strstr(\substr($v, $c + 8) . ' ', ' ', true), '\'"'));
+                }
+            }
+        }
+        return null;
+    }
+    function links($content) {
+        $r = [];
+        while (false !== ($n = \strpos($content, '<', $i ??= 0))) {
+            if (null !== ($link = link(\substr($content, $n)))) {
+                $r[] = $link;
+            }
+            $i = $n + 1;
+        }
+        return \array_unique($r);
+    }
     function page__image($image) {
         // Skip if `image` data has been set!
         if ($image) {
             return \long($image);
         }
         // Get URL from `content` data
-        if ($content = $this->content) {
-            // Get URL from `<img>` tag
-            if (false !== \strpos($content, '<img ') && \preg_match('/<img(\s[^>]+)>/', $content, $m)) {
-                if (false !== \strpos($m[1], ' src=')) {
-                    return \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($m[1], ' src='), 5) . ' ', ' ', true), '\'"'));
-                }
-            // Get URL from `<video>` tag
-            } else if (false !== \strpos($content, '<video ') && \preg_match('/<video(\s[^>]+)>/', $content, $m)) {
-                if (false !== \strpos($m[1], ' poster=')) {
-                    return \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($m[1], ' poster='), 8) . ' ', ' ', true), '\'"'));
-                }
-            }
-        }
-        return null;
+        return ($v = $this->content) ? link($v) : null;
     }
     function page__images($images) {
         // Skip if `images` data has been set!
@@ -44,37 +60,19 @@ namespace x\image {
             unset($image);
             return $images;
         }
-        $images = [];
-        // Get URL from `content` data
-        if ($content = $this->content) {
-            // Get URL from `<img>` tag
-            if (false !== \strpos($content, '<img ') && \preg_match_all('/<img(\s[^>]+)>/', $content, $m)) {
-                foreach ($m[1] as $v) {
-                    if (false !== \strpos($v, ' src=')) {
-                        $images[] = \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($v, ' src='), 5) . ' ', ' ', true), '\'"'));
-                    }
-                }
-            // Get URL from `<video>` tag
-            } else if (false !== \strpos($content, '<video ') && \preg_match_all('/<video(\s[^>]+)>/', $content, $m)) {
-                foreach ($m[1] as $v) {
-                    if (false !== \strpos($v, ' poster=')) {
-                        $images[] = \htmlspecialchars_decode(\trim(\strstr(\substr(\strstr($v, ' poster='), 8) . ' ', ' ', true), '\'"'));
-                    }
-                }
-            }
-        }
-        return \array_unique($images);
+        // Get URL(s) from `content` data
+        return ($v = $this->content) ? links($v) : [];
     }
     function route($content, $path, $query, $hash) {
         if (null !== $content) {
             return $content;
         }
         $route = \trim($state->x->image->route ?? 'image', '/');
-        if (!\is_file($file = \LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
+        if (!\is_file($file = \LOT . \D . 'image' . \D . ($path = \substr($path, \strlen($route) + 1)))) {
             return $content;
         }
-        if (false !== \strpos(',apng,avif,bmp,gif,jpeg,jpg,png,svg,webp,xbm,xpm,', ',' . \pathinfo($file, \PATHINFO_EXTENSION) . ',')) {
-            return \Hook::fire('route.image', [$content, \substr($path, \strlen($route) + 1), $query, $hash]);
+        if (false !== \strpos(',' . x() . ',', ',' . \strtolower(\pathinfo($file, \PATHINFO_EXTENSION)) . ',')) {
+            return \Hook::fire('route.image', [$content, $path, $query, $hash]);
         }
         return $content;
     }
@@ -107,26 +105,27 @@ namespace x\image\page__image {
         if (!$lot || !$image || !\is_string($image)) {
             return $image;
         }
-        $width = \ceil($lot[0]);
-        $height = \ceil($lot[1] ?? $width);
-        $quality = $lot[2] ?? -1;
-        $x = \pathinfo($image, \PATHINFO_EXTENSION) ?: 'jpg';
+        $image = \substr($image, 0, \strcspn($image, '?&#'));
+        $w = \ceil($lot[0]);
+        $h = \ceil($lot[1] ?? $w);
+        $q = $lot[2] ?? -1;
+        $x = \strtolower(\pathinfo($image, \PATHINFO_EXTENSION) ?: 'jpg');
         $path = \To::path(\long($image));
-        $store = \LOT . \D . 'image' . \D . 't' . \D . $width . ($height !== $width ? \D . $height : "") . \D . \dechex(\crc32($image . $quality)) . '.' . $x;
+        $store = \LOT . \D . 'image' . \D . 't' . \D . $w . ($h !== $w ? \D . $h : "") . \D . \hash('xxh3', $image . '%' . $q) . '.' . $x;
         if (\is_file($store)) {
             $image = \To::URL($store); // Return the image cache URL
-        } else if (\function_exists("\\x\\image\\from\\" . $x)) {
+        } else if (false !== \strpos(',' . \x\image\x() . ',', ',' . $x . ',')) {
             $blob = new \Image(\is_file($path) ? $path : $image);
-            // `$page->image($width, $height, $quality)`
-            $blob->crop($width, $height)->blob($store, $quality); // Generate image cache
+            // `$page->image($w, $h, $q)`
+            $blob->crop($w, $h)->blob($store, $q); // Generate image cache
             $image = \To::URL($store); // Return the image cache URL
         } else if (\is_file($path)) {
             $image = \To::URL($path);
         }
         // Convert direct image URL from folder `.\lot\image` to its proxy image URL
         \extract(\lot(), \EXTR_SKIP);
-        if ($image && 0 === \strpos($image, $url . '/lot/image/')) {
-            $image = \substr_replace($image, $url . '/' . \trim($state->x->image->route ?? 'image', '/') . '/', 0, \strlen($url . '/lot/image/'));
+        if ($image && 0 === \strpos($image, $v = \long('/lot/image/'))) {
+            $image = \substr_replace($image, \long('/' . \trim($state->x->image->route ?? 'image', '/') . '/'), 0, \strlen($v));
         }
         return $image;
     }
@@ -141,7 +140,7 @@ namespace x\image\page__images {
         return $images;
     }
     \Hook::set('page.images', __NAMESPACE__ . "\\crop", 2.2);
-    if (\defined('TEST') && 'x.image' === \TEST && \is_file($test = __DIR__ . \D . 'test.php')) {
+    if (\defined("\\TEST") && 'x.image' === \TEST && \is_file($test = __DIR__ . \D . 'test.php')) {
         require $test;
     }
 }
