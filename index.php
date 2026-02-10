@@ -113,14 +113,14 @@ namespace x\image\page__image {
         $path = \To::path(\long($image));
         $store = \LOT . \D . 'image' . \D . 't' . \D . $w . ($h !== $w ? \D . $h : "") . \D . \hash('xxh3', $image . '%' . $q) . '.' . $x;
         if (\is_file($store)) {
-            $image = \To::URL($store); // Return the image cache URL
+            $image = \To::link($store); // Return the image cache URL
         } else if (false !== \strpos(',' . \x\image\x() . ',', ',' . $x . ',')) {
             $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($w, $h, $q)`
             $blob->crop($w, $h)->blob($store, $q); // Generate image cache
-            $image = \To::URL($store); // Return the image cache URL
+            $image = \To::link($store); // Return the image cache URL
         } else if (\is_file($path)) {
-            $image = \To::URL($path);
+            $image = \To::link($path);
         }
         // Convert direct image URL from folder `.\lot\image` to its proxy image URL
         \extract(\lot(), \EXTR_SKIP);
