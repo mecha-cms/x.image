@@ -34,8 +34,9 @@ namespace x\image {
         return null;
     }
     function links($content) {
+        $i = 0;
         $r = [];
-        while (false !== ($n = \strpos($content, '<', $i ??= 0))) {
+        while (false !== ($n = \strpos($content, '<', $i))) {
             if (null !== ($link = link(\substr($content, $n)))) {
                 $r[] = $link;
             }
