@@ -28,7 +28,7 @@ echo '<legend>';
 echo 'Input(s)';
 echo '</legend>';
 echo '<figure>';
-echo '<img alt="" src="/' . $sub . short(To::URL($from)) . '">';
+echo '<img alt="" src="/' . $sub . short(To::link($from)) . '">';
 echo '<figcaption>';
 echo $from;
 echo '</figcaption>';
@@ -53,7 +53,7 @@ echo 'Output(s)';
 echo '</legend>';
 foreach (glob($folder . D . '*.{jpg,png}', GLOB_BRACE) as $v) {
     echo '<figure>';
-    echo '<img alt="" src="/' . $sub . short(To::URL($v)) . '?v=' . filemtime($v) . '">';
+    echo '<img alt="" src="/' . $sub . short(To::link($v)) . '?v=' . filemtime($v) . '">';
     echo '<figcaption>';
     echo basename($v);
     echo '</figcaption>';

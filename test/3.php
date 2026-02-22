@@ -36,13 +36,13 @@ echo '<fieldset>';
 echo '<legend>';
 echo 'Remote';
 echo '</legend>';
-$blob_url = new Image('https://avatars1.githubusercontent.com/u/1669261');
+$blob_link = new Image('https://avatars1.githubusercontent.com/u/1669261');
 echo '<pre style="background: #000; color: #fff; font: 2em/1 monospace; margin: 0; padding: 0.5em;">';
 echo json_encode([
-    'height' => $blob_url->height,
-    'path' => $blob_url->path,
-    'type' => $blob_url->type,
-    'width' => $blob_url->width
+    'height' => $blob_link->height,
+    'path' => $blob_link->path,
+    'type' => $blob_link->type,
+    'width' => $blob_link->width
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 echo '</pre>';
 unset($blob);

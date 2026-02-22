@@ -14,7 +14,7 @@ namespace {
 
 namespace x\image {
     function link($content) {
-        // Get URL from `<img>` tag
+        // Get link from `<img>` tag
         if (false !== ($a = \strpos($content, '<img')) && \strspn($content, " \n\r\t", $a + 4)) {
             if (false !== ($b = \strpos($content, '>', $a))) {
                 $v = ' ' . \strtr(\trim(\substr($content, $a += 4, $b - $a)), ["\n" => ' ', "\r" => ' ', "\t" => ' ']);
@@ -22,7 +22,7 @@ namespace x\image {
                     return \htmlspecialchars_decode(\trim(\strstr(\substr($v, $c + 5) . ' ', ' ', true), '\'"'));
                 }
             }
-        // Get URL from `<video>` tag
+        // Get link from `<video>` tag
         } else if (false !== ($a = \strpos($content, '<video')) && \strspn($content, " \n\r\t", $a + 6)) {
             if (false !== ($b = \strpos($content, '>', $a))) {
                 $v = ' ' . \strtr(\trim(\substr($content, $a += 6, $b - $a)), ["\n" => ' ', "\r" => ' ', "\t" => ' ']);
@@ -49,7 +49,7 @@ namespace x\image {
         if ($image) {
             return \long($image);
         }
-        // Get URL from `content` data
+        // Get link from `content` data
         return ($v = $this->content) ? link($v) : null;
     }
     function page__images($images) {
@@ -61,7 +61,7 @@ namespace x\image {
             unset($image);
             return $images;
         }
-        // Get URL(s) from `content` data
+        // Get link(s) from `content` data
         return ($v = $this->content) ? links($v) : [];
     }
     function route($content, $path, $query, $hash) {
@@ -91,7 +91,7 @@ namespace x\image {
         echo \file_get_contents($file);
         exit;
     }
-    $path = \trim($url->path ?? $state->route ?? 'index', '/');
+    $path = \trim($link->path ?? $state->route ?? 'index', '/');
     $route = \trim($state->x->image->route ?? 'image', '/');
     if (0 === \strpos($path, $route . '/') && \is_file(\LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
         \Hook::set('route', __NAMESPACE__ . "\\route", 0);
@@ -114,16 +114,16 @@ namespace x\image\page__image {
         $path = \To::path(\long($image));
         $store = \LOT . \D . 'image' . \D . 't' . \D . $w . ($h !== $w ? \D . $h : "") . \D . \hash('xxh3', $image . '%' . $q) . '.' . $x;
         if (\is_file($store)) {
-            $image = \To::link($store); // Return the image cache URL
+            $image = \To::link($store); // Return the image cache link
         } else if (false !== \strpos(',' . \x\image\x() . ',', ',' . $x . ',')) {
             $blob = new \Image(\is_file($path) ? $path : $image);
             // `$page->image($w, $h, $q)`
             $blob->crop($w, $h)->blob($store, $q); // Generate image cache
-            $image = \To::link($store); // Return the image cache URL
+            $image = \To::link($store); // Return the image cache link
         } else if (\is_file($path)) {
             $image = \To::link($path);
         }
-        // Convert direct image URL from folder `.\lot\image` to its proxy image URL
+        // Convert direct image link from folder `.\lot\image` to its proxy image link
         \extract(\lot(), \EXTR_SKIP);
         if ($image && 0 === \strpos($image, $v = \long('/lot/image/'))) {
             $image = \substr_replace($image, \long('/' . \trim($state->x->image->route ?? 'image', '/') . '/'), 0, \strlen($v));
