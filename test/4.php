@@ -1,6 +1,6 @@
 <?php
 
-if (!is_dir($folder = __DIR__ . D . 'out' . D . 'quality')) {
+if (!is_dir($folder = __DIR__ . D . 'r' . D . 'q')) {
     mkdir($folder, 0775, true);
 }
 

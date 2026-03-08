@@ -1,7 +1,7 @@
 <?php
 
 $from = __DIR__ . D . 'test.jpg';
-$folder = dirname($from) . D . 'out';
+$folder = dirname($from) . D . 'r';
 
 if (!is_dir($folder)) {
     mkdir($folder, 0775, true);
@@ -20,8 +20,10 @@ file_put_contents($folder . D . 'crop.72,72.jpg', (new Image($from))->crop(72, 7
 file_put_contents($folder . D . 'fit.200.jpg', (new Image($from))->fit(200, 200));
 // Resize
 file_put_contents($folder . D . 'resize.200,200.jpg', (new Image($from))->resize(200, 200));
-// Scale
+// Scale 50%
 file_put_contents($folder . D . 'scale.50.jpg', (new Image($from))->scale(50));
+// Scale 200%
+file_put_contents($folder . D . 'scale.200.jpg', (new Image($from))->scale(200));
 
 echo '<fieldset>';
 echo '<legend>';

@@ -1,39 +1,48 @@
 <?php
 
 namespace x\image {
-    function from(string $v) {
-        $error = 0;
-        \set_error_handler(function () use (&$error) {
-            $error = 1;
-            return true;
-        }, \E_WARNING);
-        $blob = \imagecreatefromstring($v);
-        \restore_error_handler();
-        if (!$error && $blob instanceof \GdImage) {
-            \imagealphablending($blob, false);
-            \imagesavealpha($blob, true);
-            return $blob;
-        }
-        $blob = \imagecreatetruecolor(1, 1);
-        \imagealphablending($blob, false);
-        \imagesavealpha($blob, true);
-        \imagefill($blob, 0, 0, \imagecolorallocatealpha($blob, 0, 0, 0, 127));
-        return $blob;
-    }
     function x(array $x = []) {
         static $r;
         if (null === $r) {
             $prefix = __NAMESPACE__ . "\\to\\x\\";
+            $n = \strlen($prefix);
             $r = [];
             foreach (\get_defined_functions()['user'] as $v) {
                 if (0 === \strpos($v, $prefix)) {
-                    $r[\substr($v, \strlen($prefix))] = 1;
+                    $v = \substr($v, $n);
+                    if (!isset($x[$v]) || $x[$v]) {
+                        $r[$v] = 1;
+                    }
                 }
             }
         }
-        $a = \array_filter(\array_replace($r, $x));
-        $a && \ksort($a);
-        return \implode(',', \array_keys($a));
+        $r && \ksort($r);
+        return \implode(',', \array_keys($r));
+    }
+}
+
+namespace x\image\from {
+    function blob(string $v, int $w = 1, int $h = 1) {
+        if ("" !== $v) {
+            $error = 0;
+            \set_error_handler(function () use (&$error) {
+                $error = 1;
+                return true;
+            }, \E_WARNING);
+            $blob = \imagecreatefromstring($v);
+            \restore_error_handler();
+            if (!$error && $blob instanceof \GdImage) {
+                \imagealphablending($blob, false);
+                \imagesavealpha($blob, true);
+                \imagefill($blob, 0, 0, \imagecolorallocatealpha($blob, 0, 0, 0, 127));
+                return $blob;
+            }
+        }
+        $blob = \imagecreatetruecolor(\max(1, $w), \max(1, $h));
+        \imagealphablending($blob, false);
+        \imagesavealpha($blob, true);
+        \imagefill($blob, 0, 0, \imagecolorallocatealpha($blob, 0, 0, 0, 127));
+        return $blob;
     }
 }
 
