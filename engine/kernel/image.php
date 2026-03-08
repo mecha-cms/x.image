@@ -46,8 +46,13 @@ class Image extends File {
         $data = $lot = [];
         if (($blob = $this->blob) && ($r = getimagesizefromstring($blob, $data))) {
             [$width, $height, $x] = $r;
-        } else if (($route = $this->links[0] ?? $this->path) && ($r = getimagesize($route, $data))) {
-            [$width, $height, $x] = $r;
+        } else if (($link_or_path = $this->links[0] ?? $this->path)) {
+            if (false !== strpos($link_or_path, '://') && parse_url($link_or_path, PHP_URL_HOST) === ($_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME']) && ($path = To::path($link_or_path))) {
+                $this->path = $link_or_path = $path;
+            }
+            if ($r = getimagesize($link_or_path, $data)) {
+                [$width, $height, $x] = $r;
+            }
         } else {
             [$width, $height, $x] = ($r = [1, 1, null]);
         }
