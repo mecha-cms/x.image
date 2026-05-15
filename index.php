@@ -68,8 +68,8 @@ namespace x\image {
         if (null !== $content) {
             return $content;
         }
-        $route = \trim($state->x->image->route ?? 'image', '/');
-        if (!\is_file($file = \LOT . \D . 'image' . \D . ($path = \substr($path, \strlen($route) + 1)))) {
+        $sub = \trim($state->x->image->sub ?? 'image', '/');
+        if (!\is_file($file = \LOT . \D . 'image' . \D . \rawurldecode($path = \substr($path, \strlen($sub) + 1)))) {
             return $content;
         }
         if (false !== \strpos(',' . x() . ',', ',' . \strtolower(\pathinfo($file, \PATHINFO_EXTENSION)) . ',')) {
@@ -91,9 +91,9 @@ namespace x\image {
         echo \file_get_contents($file);
         exit;
     }
-    $path = \trim($link->path ?? $state->route ?? 'index', '/');
-    $route = \trim($state->x->image->route ?? 'image', '/');
-    if (0 === \strpos($path, $route . '/') && \is_file(\LOT . \D . 'image' . \D . \substr($path, \strlen($route) + 1))) {
+    $path = \trim($link->path ?? $state->home ?? 'index', '/');
+    $sub = \trim($state->x->image->sub ?? 'image', '/');
+    if (0 === \strpos($path, $sub . '/') && \is_file(\LOT . \D . 'image' . \D . \rawurldecode(\substr($path, \strlen($sub) + 1)))) {
         \Hook::set('route', __NAMESPACE__ . "\\route", 0);
         \Hook::set('route.image', __NAMESPACE__ . "\\route__image", 100);
     }
@@ -126,7 +126,7 @@ namespace x\image\page__image {
         // Convert direct image link from folder `.\lot\image` to its proxy image link
         \extract(\lot(), \EXTR_SKIP);
         if ($image && 0 === \strpos($image, $v = \long('/lot/image/'))) {
-            $image = \substr_replace($image, \long('/' . \trim($state->x->image->route ?? 'image', '/') . '/'), 0, \strlen($v));
+            $image = \substr_replace($image, \long('/' . \trim($state->x->image->sub ?? 'image', '/') . '/'), 0, \strlen($v));
         }
         return $image;
     }

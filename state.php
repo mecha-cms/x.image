@@ -1,3 +1,3 @@
 <?php
 
-return ['route' => '/image'];
+return ['sub' => '/image'];
